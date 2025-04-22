@@ -14,13 +14,16 @@ const AdminEvents = () => {
   const { events, isLoading, updateEvent, deleteEvent, isAdmin } = useEvents();
   const [filter, setFilter] = useState<"all" | "pending" | "approved">("pending");
 
+  // Check for admin status in user's metadata
+  const userIsAdmin = user?.user_metadata?.is_admin === true || user?.app_metadata?.is_admin === true;
+
   // Redirect if not admin
   useEffect(() => {
-    if (user && !isAdmin) {
+    if (user && !userIsAdmin) {
       toast.error("You don't have permission to access this page");
       navigate("/");
     }
-  }, [user, isAdmin, navigate]);
+  }, [user, userIsAdmin, navigate]);
 
   // If still loading user or not logged in, show loading
   if (!user) {
@@ -32,7 +35,7 @@ const AdminEvents = () => {
   }
 
   // If not admin, don't render anything (will redirect)
-  if (!isAdmin) return null;
+  if (!userIsAdmin) return null;
 
   const filteredEvents = events.filter((event) => {
     if (filter === "pending") return !event.is_approved;

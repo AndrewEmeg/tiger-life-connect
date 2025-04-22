@@ -8,13 +8,14 @@ import { useAuth } from "@/contexts/AuthContext";
 export function useEvents() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const isAdmin = user?.is_admin === true;
+  // Check for admin status in user's custom_claims or other properties
+  const isAdmin = user?.user_metadata?.is_admin === true || user?.app_metadata?.is_admin === true;
 
   // Fetch events based on user role
   const { data: events = [], isLoading } = useQuery({
     queryKey: ["events"],
     queryFn: async () => {
-      console.log("Fetching events, user is admin:", isAdmin);
+      console.log("Fetching events, user is admin:", isAdmin, "User object:", user);
       let query = supabase.from("events").select("*, organizer:users(*)");
       
       if (!isAdmin) {

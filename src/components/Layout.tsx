@@ -17,6 +17,9 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { user, signOut } = useAuth();
+  
+  // Check for admin status in user's metadata
+  const isAdmin = user?.user_metadata?.is_admin === true || user?.app_metadata?.is_admin === true;
 
   const handleSignOut = async () => {
     try {
@@ -50,7 +53,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               <Bell size={22} />
             </Link>
             
-            {user?.is_admin && (
+            {isAdmin && (
               <Link 
                 to="/admin/events" 
                 className="text-gray-600 hover:text-tigerGold flex items-center"
@@ -73,7 +76,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <DropdownMenuItem asChild>
                   <Link to="/profile">Profile</Link>
                 </DropdownMenuItem>
-                {user?.is_admin && (
+                {isAdmin && (
                   <DropdownMenuItem asChild>
                     <Link to="/admin/events">Admin Events</Link>
                   </DropdownMenuItem>
