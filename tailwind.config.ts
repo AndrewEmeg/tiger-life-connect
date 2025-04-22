@@ -61,7 +61,10 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+                // Grambling State University colors
+                tigerBlack: '#000000',
+                tigerGold: '#FFD700',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
