@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ProductCardProps {
     product: Product & { seller: User };
@@ -35,7 +36,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
         e.stopPropagation();
     };
 
-    const handleMessageClick = (e: React.MouseEvent) => {
+    const handleMessageClick = async (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
         
@@ -49,7 +50,26 @@ const ProductCard: React.FC<ProductCardProps> = ({
             return;
         }
         
-        navigate(`/messages?to=${product.seller_id}`);
+        // Check if the seller exists before navigating
+        try {
+            const { data, error } = await supabase
+                .from("users")
+                .select("id")
+                .eq("id", product.seller_id)
+                .single();
+                
+            if (error || !data) {
+                console.error("Seller not found:", error);
+                toast.error("Seller account not available");
+                return;
+            }
+            
+            // If we reach here, the seller exists
+            navigate(`/messages?to=${product.seller_id}`);
+        } catch (error) {
+            console.error("Error checking seller:", error);
+            toast.error("Could not connect to seller");
+        }
     };
 
     return (

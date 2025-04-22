@@ -13,6 +13,8 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { toast } from "@/components/ui/sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ServiceCardProps {
     service: Service & { provider: User };
@@ -40,10 +42,40 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
         navigate(`/service/${service.id}`);
     };
 
-    const handleMessageClick = (e: React.MouseEvent) => {
+    const handleMessageClick = async (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        navigate(`/messages?to=${service.provider_id}`);
+        
+        if (isOwner) {
+            toast.info("This is your service");
+            return;
+        }
+        
+        if (!service.provider_id) {
+            toast.error("Cannot message this provider");
+            return;
+        }
+        
+        // Check if the provider exists before navigating
+        try {
+            const { data, error } = await supabase
+                .from("users")
+                .select("id")
+                .eq("id", service.provider_id)
+                .single();
+                
+            if (error || !data) {
+                console.error("Provider not found:", error);
+                toast.error("Provider account not available");
+                return;
+            }
+            
+            // If we reach here, the provider exists
+            navigate(`/messages?to=${service.provider_id}`);
+        } catch (error) {
+            console.error("Error checking provider:", error);
+            toast.error("Could not connect to provider");
+        }
     };
 
     return (
@@ -93,6 +125,8 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
                             variant="ghost" 
                             size="icon"
                             onClick={handleMessageClick}
+                            disabled={isOwner}
+                            title={isOwner ? "This is your service" : "Message provider"}
                         >
                             <MessageSquare size={16} />
                         </Button>
