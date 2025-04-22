@@ -79,11 +79,11 @@ const Services: React.FC = () => {
       </header>
 
       <div className="mb-8">
-        <div className="bg-white p-0 rounded-lg shadow-sm mb-6">
+        <div className="bg-white p-0 sm:p-0 md:p-4 rounded-lg shadow-sm mb-6">
           {isMobile ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-2">
+                <Button variant="outline" size="sm" className="gap-2 m-2">
                   <SlidersHorizontal size={18} />
                   Filter
                 </Button>
@@ -110,7 +110,7 @@ const Services: React.FC = () => {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 p-4">
               <div className="flex items-center">
                 <span className="text-sm font-medium mr-2">Filter:</span>
               </div>

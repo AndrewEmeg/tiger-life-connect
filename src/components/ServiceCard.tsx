@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
@@ -14,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface ServiceCardProps {
     service: Service & { provider: User };
@@ -111,9 +113,20 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
                             ${service.price.toFixed(2)}
                         </span>
                     </div>
-                    <p className="text-gray-600 text-sm line-clamp-2 mb-4">
+                    <p className="text-gray-600 text-sm line-clamp-2 mb-2">
                         {service.description}
                     </p>
+                    <div className="flex items-center gap-2 mt-2">
+                        <Avatar className="h-5 w-5">
+                            <AvatarImage src={service.provider?.profile_image} />
+                            <AvatarFallback className="text-xs bg-gray-200">
+                                {service.provider?.full_name?.charAt(0).toUpperCase() || "P"}
+                            </AvatarFallback>
+                        </Avatar>
+                        <span className="text-xs text-gray-500">
+                            {service.provider?.full_name || "Tiger Provider"}
+                        </span>
+                    </div>
                 </div>
             </Link>
             <div className="px-4 pb-4" onClick={handleActionClick}>

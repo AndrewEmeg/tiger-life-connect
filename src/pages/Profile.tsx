@@ -9,6 +9,7 @@ import ProductCard from "@/components/ProductCard";
 import ServiceCard from "@/components/ServiceCard";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { Link } from "react-router-dom";
+import ProfileImageUpload from "@/components/ProfileImageUpload";
 
 const Profile: React.FC = () => {
   const { user, products, services, orders, isLoading } = useUserProfile();
@@ -43,10 +44,10 @@ const Profile: React.FC = () => {
       {/* User Profile Header */}
       <Card>
         <CardHeader className="flex flex-row items-center gap-4">
-          <Avatar className="h-20 w-20">
-            <AvatarImage src={avatarUrl} />
-            <AvatarFallback>{user.email?.charAt(0).toUpperCase()}</AvatarFallback>
-          </Avatar>
+          <ProfileImageUpload 
+            imageUrl={avatarUrl} 
+            size="lg"
+          />
           <div>
             <CardTitle className="text-2xl">{displayName}</CardTitle>
             <p className="text-sm text-muted-foreground">

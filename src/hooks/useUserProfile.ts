@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -6,6 +5,38 @@ import { Product, Service, Order } from "@/types";
 
 export function useUserProfile() {
   const { user } = useAuth();
+
+  const { data: userProfile, isLoading: isLoadingUserProfile } = useQuery({
+    queryKey: ["userProfileDetails", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data, error } = await supabase
+        .from("users")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+      
+      if (error) {
+        console.error("Error fetching user profile:", error);
+        return null;
+      }
+      
+      // Add any profile data to the user metadata
+      if (data && user) {
+        const updatedUser = {
+          ...user,
+          user_metadata: {
+            ...user.user_metadata,
+            profile_image: data.profile_image,
+          }
+        };
+        return updatedUser;
+      }
+      
+      return user;
+    },
+    enabled: !!user?.id,
+  });
 
   const { data: products, isLoading: isLoadingProducts } = useQuery({
     queryKey: ["userProducts", user?.id],
@@ -78,10 +109,10 @@ export function useUserProfile() {
   });
 
   return {
-    user,
+    user: userProfile || user,
     products,
     services,
     orders,
-    isLoading: isLoadingProducts || isLoadingServices || isLoadingOrders,
+    isLoading: isLoadingUserProfile || isLoadingProducts || isLoadingServices || isLoadingOrders,
   };
 }

@@ -1,7 +1,8 @@
+
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
-import { MessageSquare, Edit, Trash2, AlertCircle } from "lucide-react";
+import { MessageSquare, Edit, Trash2, AlertCircle, ShoppingCart } from "lucide-react";
 import { Product, User } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -20,6 +21,7 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface ProductCardProps {
     product: Product & { seller: User };
@@ -40,6 +42,12 @@ const ProductCard: React.FC<ProductCardProps> = ({
     const handleActionClick = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
+    };
+
+    const handleBuyClick = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        navigate(`/product/${product.id}`);
     };
 
     const handleMessageClick = async (e: React.MouseEvent) => {
@@ -118,9 +126,20 @@ const ProductCard: React.FC<ProductCardProps> = ({
                             ${product.price.toFixed(2)}
                         </span>
                     </div>
-                    <p className="text-gray-600 text-sm line-clamp-2 mb-4">
+                    <p className="text-gray-600 text-sm line-clamp-2 mb-2">
                         {product.description}
                     </p>
+                    <div className="flex items-center gap-2 mt-2">
+                        <Avatar className="h-5 w-5">
+                            <AvatarImage src={product.seller?.profile_image} />
+                            <AvatarFallback className="text-xs bg-gray-200">
+                                {product.seller?.full_name?.charAt(0).toUpperCase() || "S"}
+                            </AvatarFallback>
+                        </Avatar>
+                        <span className="text-xs text-gray-500">
+                            {product.seller?.full_name || "Tiger Seller"}
+                        </span>
+                    </div>
                 </div>
             </Link>
             <div className="px-4 pb-4" onClick={handleActionClick}>
@@ -131,6 +150,17 @@ const ProductCard: React.FC<ProductCardProps> = ({
                         })}
                     </div>
                     <div className="flex items-center gap-2">
+                        {!isOwner && (
+                            <Button
+                                variant="default"
+                                size="sm"
+                                className="bg-tigerGold text-tigerBlack hover:bg-tigerGold/90"
+                                onClick={handleBuyClick}
+                            >
+                                <ShoppingCart size={16} className="mr-1" />
+                                Buy
+                            </Button>
+                        )}
                         <TooltipProvider>
                             <Tooltip>
                                 <TooltipTrigger asChild>

@@ -5,12 +5,19 @@ import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/components/ui/sonner';
 
+interface UserProfile {
+  profile_image?: string;
+  full_name?: string;
+  // Add other profile fields here as needed
+}
+
 interface AuthContextType {
   session: Session | null;
   user: User | null;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, fullName: string) => Promise<void>;
   signOut: () => Promise<void>;
+  updateUserProfile: (profileData: UserProfile) => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -19,6 +26,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
+
+  // Function to update user profile in the context
+  const updateUserProfile = (profileData: UserProfile) => {
+    if (user) {
+      // Update the user object with new profile data
+      setUser({
+        ...user,
+        user_metadata: {
+          ...user.user_metadata,
+          ...profileData,
+        }
+      });
+    }
+  };
 
   useEffect(() => {
     // Set up auth state listener
@@ -73,7 +94,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ session, user, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ session, user, signIn, signUp, signOut, updateUserProfile }}>
       {children}
     </AuthContext.Provider>
   );
