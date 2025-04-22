@@ -1,7 +1,6 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
-import { Search, MessageSquare, Bell, User, Shield } from "lucide-react";
+import { Search, MessageSquare, Shield } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   DropdownMenu,
@@ -10,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { NotificationsDropdown } from "./NotificationsDropdown";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -28,10 +28,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       console.error('Error signing out:', error);
     }
   };
-
+  
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <header className="bg-white shadow-md py-4 px-6">
         <div className="container mx-auto flex justify-between items-center">
           <Link to="/" className="flex items-center gap-2">
@@ -41,7 +40,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <h1 className="text-xl font-bold">Tiger Life</h1>
           </Link>
           
-          {/* Navigation Icons */}
           <div className="flex items-center gap-6">
             <Link to="/search" className="text-gray-600 hover:text-tigerGold">
               <Search size={22} />
@@ -49,9 +47,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <Link to="/messages" className="text-gray-600 hover:text-tigerGold">
               <MessageSquare size={22} />
             </Link>
-            <Link to="/notifications" className="text-gray-600 hover:text-tigerGold">
-              <Bell size={22} />
-            </Link>
+            <NotificationsDropdown />
             
             {isAdmin && (
               <Link 
@@ -90,12 +86,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         </div>
       </header>
       
-      {/* Main content */}
       <main className="container mx-auto px-4 py-8">
         {children}
       </main>
       
-      {/* Footer */}
       <footer className="bg-tigerBlack text-white py-8">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between">
