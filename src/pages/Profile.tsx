@@ -1,3 +1,4 @@
+
 import React from "react";
 import { formatDistanceToNow } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -24,26 +25,31 @@ const Profile: React.FC = () => {
   }
 
   // Enhanced type-safe extraction of user details
-  const displayName = 
-    (user as User)?.full_name || 
-    (user as SupabaseUser)?.user_metadata?.full_name || 
-    (user.email?.split('@')[0] || "Tiger Student");
-  
-  const avatarUrl = 
-    (user as User)?.profile_image || 
-    (user as SupabaseUser)?.user_metadata?.profile_image || 
-    (user as SupabaseUser)?.user_metadata?.avatar_url || 
+  // Avoid forced type casting!
+  const getMetadata = (u: any) => (u?.user_metadata ? u.user_metadata : {});
+  const getAppMetadata = (u: any) => (u?.app_metadata ? u.app_metadata : {});
+
+  const displayName =
+    (user as User)?.full_name ||
+    getMetadata(user)?.full_name ||
+    (user.email?.split("@")[0] || "Tiger Student");
+
+  const avatarUrl =
+    (user as User)?.profile_image ||
+    getMetadata(user)?.profile_image ||
+    getMetadata(user)?.avatar_url ||
     null;
-  
-  const joinedDate = 
-    (user as User)?.joined_at || 
-    (user as SupabaseUser)?.created_at || 
+
+  const joinedDate =
+    (user as User)?.joined_at ||
+    (user as User)?.created_at ||
+    user?.created_at ||
     new Date().toISOString();
-  
-  const isAdmin = 
-    (user as User)?.is_admin || 
-    (user as SupabaseUser)?.user_metadata?.is_admin === true || 
-    (user as SupabaseUser)?.app_metadata?.is_admin === true;
+
+  const isAdmin =
+    (user as User)?.is_admin ||
+    getMetadata(user)?.is_admin === true ||
+    getAppMetadata(user)?.is_admin === true;
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -56,23 +62,47 @@ const Profile: React.FC = () => {
     }
   };
 
+  // Filter out orders with status "processing"
+  const filteredOrders = (orders || []).filter(
+    o => o.status !== "processing"
+  );
+
   return (
-    <div className="max-w-5xl mx-auto p-6 space-y-8">
+    <div className="max-w-5xl mx-auto p-3 sm:p-6 space-y-8">
       {/* User Profile Header */}
       <Card>
-        <CardHeader className="flex flex-row items-center gap-4">
-          <ProfileImageUpload 
-            imageUrl={avatarUrl} 
-            size="lg"
-          />
-          <div>
-            <CardTitle className="text-2xl">{displayName}</CardTitle>
-            <p className="text-sm text-muted-foreground">
+        <CardHeader
+          className="
+            flex flex-col sm:flex-row items-center gap-4
+            sm:items-center sm:gap-6 
+            p-4 sm:p-6"
+        >
+          {/* Responsive image size */}
+          <div className="flex-shrink-0">
+            <div className="sm:block hidden">
+              <ProfileImageUpload imageUrl={avatarUrl} size="lg" />
+            </div>
+            <div className="sm:hidden block">
+              <ProfileImageUpload imageUrl={avatarUrl} size="md" />
+            </div>
+          </div>
+          <div className="w-full">
+            <CardTitle
+              className="
+                text-lg sm:text-2xl font-bold
+                break-all 
+              "
+            >
+              {displayName}
+            </CardTitle>
+            <p className="text-xs sm:text-sm text-muted-foreground">
               Joined {joinedDate ? formatDistanceToNow(new Date(joinedDate), { addSuffix: true }) : "recently"}
             </p>
-            <p className="text-sm text-muted-foreground">{user.email}</p>
+            <p className="text-xs sm:text-sm text-muted-foreground break-all">{user.email}</p>
             {isAdmin && (
-              <Badge className="mt-2 bg-tigerGold text-tigerBlack">Admin</Badge>
+              <Badge className="mt-2 bg-tigerGold text-tigerBlack text-xs sm:text-sm py-1 px-2">
+                Admin
+              </Badge>
             )}
           </div>
         </CardHeader>
@@ -81,32 +111,40 @@ const Profile: React.FC = () => {
       {/* User Content Tabs */}
       <Tabs defaultValue="products" className="w-full">
         <TabsList>
-          <TabsTrigger value="products">Products ({products?.length || 0})</TabsTrigger>
-          <TabsTrigger value="services">Services ({services?.length || 0})</TabsTrigger>
-          <TabsTrigger value="orders">Orders ({orders?.length || 0})</TabsTrigger>
+          <TabsTrigger value="products">
+            Products ({products?.length || 0})
+          </TabsTrigger>
+          <TabsTrigger value="services">
+            Services ({services?.length || 0})
+          </TabsTrigger>
+          <TabsTrigger value="orders">
+            Orders ({filteredOrders.length})
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="products" className="mt-6">
           {products && products.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {products.map((product) => (
-                <ProductCard 
-                  key={product.id} 
-                  product={{ 
-                    ...product, 
+                <ProductCard
+                  key={product.id}
+                  product={{
+                    ...product,
                     seller: {
                       id: user.id,
                       email: user.email,
                       full_name: displayName,
                       joined_at: joinedDate || new Date().toISOString(),
-                      is_admin: isAdmin
-                    }
+                      is_admin: isAdmin,
+                    },
                   }}
                 />
               ))}
             </div>
           ) : (
-            <p className="text-muted-foreground">No products listed yet.</p>
+            <p className="text-muted-foreground">
+              No products listed yet.
+            </p>
           )}
         </TabsContent>
 
@@ -114,30 +152,32 @@ const Profile: React.FC = () => {
           {services && services.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {services.map((service) => (
-                <ServiceCard 
-                  key={service.id} 
-                  service={{ 
+                <ServiceCard
+                  key={service.id}
+                  service={{
                     ...service,
                     provider: {
                       id: user.id,
                       email: user.email,
                       full_name: displayName,
                       joined_at: joinedDate || new Date().toISOString(),
-                      is_admin: isAdmin
-                    }
+                      is_admin: isAdmin,
+                    },
                   }}
                 />
               ))}
             </div>
           ) : (
-            <p className="text-muted-foreground">No services offered yet.</p>
+            <p className="text-muted-foreground">
+              No services offered yet.
+            </p>
           )}
         </TabsContent>
 
         <TabsContent value="orders" className="mt-6">
-          {orders && orders.length > 0 ? (
+          {filteredOrders && filteredOrders.length > 0 ? (
             <div className="space-y-4">
-              {orders.map((order) => (
+              {filteredOrders.map((order) => (
                 <Card key={order.id} className="overflow-hidden">
                   <CardContent className="p-0">
                     <div className="flex flex-col md:flex-row">
@@ -152,11 +192,16 @@ const Profile: React.FC = () => {
                       )}
                       <div className="p-4 flex-1">
                         <div className="flex flex-col md:flex-row md:items-center justify-between mb-2">
-                          <h3 className="text-lg font-medium">{order.item?.title}</h3>
+                          <h3 className="text-lg font-medium">
+                            {order.item?.title}
+                          </h3>
                           <div className="flex items-center space-x-2 mt-1 md:mt-0">
-                            <span className="font-medium">${order.price.toFixed(2)}</span>
+                            <span className="font-medium">
+                              ${order.price.toFixed(2)}
+                            </span>
                             <Badge className={getStatusColor(order.status)}>
-                              {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                              {order.status.charAt(0).toUpperCase() +
+                                order.status.slice(1)}
                             </Badge>
                           </div>
                         </div>
@@ -169,12 +214,17 @@ const Profile: React.FC = () => {
                               Order #{order.id.substring(0, 8)}
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              {formatDistanceToNow(new Date(order.created_at), { addSuffix: true })}
+                              {formatDistanceToNow(new Date(order.created_at), {
+                                addSuffix: true,
+                              })}
                             </p>
                           </div>
                           <div className="text-right">
                             <p className="text-xs font-medium">
-                              {order.buyer_id === user.id ? 'You purchased' : 'You sold'} this {order.item_type}
+                              {order.buyer_id === user.id
+                                ? "You purchased"
+                                : "You sold"}{" "}
+                              this {order.item_type}
                             </p>
                           </div>
                         </div>
@@ -185,7 +235,9 @@ const Profile: React.FC = () => {
               ))}
             </div>
           ) : (
-            <p className="text-muted-foreground">No orders placed yet.</p>
+            <p className="text-muted-foreground">
+              No orders placed yet.
+            </p>
           )}
         </TabsContent>
       </Tabs>
