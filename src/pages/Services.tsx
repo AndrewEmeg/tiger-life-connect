@@ -1,18 +1,22 @@
 
 import React, { useState } from "react";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import ServiceCard from "@/components/ServiceCard";
 import ServiceForm from "@/components/ServiceForm";
 import { useServices } from "@/hooks/useServices";
 import { Service } from "@/types";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Services: React.FC = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<"recent" | "price_asc" | "price_desc">("recent");
   const [editingService, setEditingService] = useState<Service | null>(null);
+
+  const isMobile = useIsMobile();
 
   const { services, isLoading, createService, updateService, deleteService } = useServices();
 
@@ -75,33 +79,64 @@ const Services: React.FC = () => {
       </header>
 
       <div className="mb-8">
-        <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
-          <div className="flex flex-wrap gap-2">
-            <div className="flex items-center">
-              <span className="text-sm font-medium mr-2">Filter:</span>
+        <div className="bg-white p-0 rounded-lg shadow-sm mb-6">
+          {isMobile ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2">
+                  <SlidersHorizontal size={18} />
+                  Filter
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-44">
+                <DropdownMenuItem
+                  onClick={() => setSortBy("recent")}
+                  className={sortBy === "recent" ? "font-semibold text-tigerGold" : ""}
+                >
+                  Recent
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => setSortBy("price_asc")}
+                  className={sortBy === "price_asc" ? "font-semibold text-tigerGold" : ""}
+                >
+                  Price: Low to High
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => setSortBy("price_desc")}
+                  className={sortBy === "price_desc" ? "font-semibold text-tigerGold" : ""}
+                >
+                  Price: High to Low
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              <div className="flex items-center">
+                <span className="text-sm font-medium mr-2">Filter:</span>
+              </div>
+              <Button
+                variant={sortBy === "recent" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSortBy("recent")}
+              >
+                Recent
+              </Button>
+              <Button
+                variant={sortBy === "price_asc" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSortBy("price_asc")}
+              >
+                Price: Low to High
+              </Button>
+              <Button
+                variant={sortBy === "price_desc" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSortBy("price_desc")}
+              >
+                Price: High to Low
+              </Button>
             </div>
-            <Button
-              variant={sortBy === "recent" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setSortBy("recent")}
-            >
-              Recent
-            </Button>
-            <Button
-              variant={sortBy === "price_asc" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setSortBy("price_asc")}
-            >
-              Price: Low to High
-            </Button>
-            <Button
-              variant={sortBy === "price_desc" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setSortBy("price_desc")}
-            >
-              Price: High to Low
-            </Button>
-          </div>
+          )}
         </div>
       </div>
 

@@ -1,11 +1,14 @@
+
 import React, { useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, ListFilter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEvents } from "@/hooks/useEvents";
 import EventCard from "@/components/EventCard";
 import EventForm from "@/components/EventForm";
 import { useAuth } from "@/contexts/AuthContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Events = () => {
     const [isFormOpen, setIsFormOpen] = useState(false);
@@ -13,12 +16,21 @@ const Events = () => {
         useEvents();
     const { user } = useAuth();
     const [activeTab, setActiveTab] = useState<string>("approved");
+    const isMobile = useIsMobile();
 
     const approvedEvents = events.filter((event) => event.is_approved);
     const myPendingEvents = events.filter(
         (event) => !event.is_approved && event.organizer_id === user?.id
     );
     const adminPendingEvents = events.filter((event) => !event.is_approved);
+
+    const tabOptions = [
+        { value: "approved", label: "All Approved Events" },
+        { value: "my-pending", label: "My Pending Events" },
+        ...(isAdmin
+            ? [{ value: "admin-pending", label: "Pending Review" }]
+            : []),
+    ];
 
     return (
         <div className="max-w-6xl mx-auto px-4 py-8">
@@ -32,28 +44,54 @@ const Events = () => {
                 </Button>
             </div>
 
-            <Tabs
-                defaultValue="approved"
-                value={activeTab}
-                onValueChange={setActiveTab}
-                className="mb-6"
-            >
-                <TabsList>
-                    <TabsTrigger value="approved">
-                        All Approved Events
-                    </TabsTrigger>
-                    <TabsTrigger value="my-pending">
-                        My Pending Events
-                    </TabsTrigger>
-                    {isAdmin && (
-                        <TabsTrigger value="admin-pending">
-                            Pending Review
-                        </TabsTrigger>
-                    )}
-                </TabsList>
+            <div className="mb-6">
+                {isMobile ? (
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="sm" className="gap-2">
+                                <ListFilter size={18} />
+                                {tabOptions.find(opt => opt.value === activeTab)?.label || "Select"}
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start" className="w-56">
+                            {tabOptions.map(option => (
+                                <DropdownMenuItem
+                                    key={option.value}
+                                    onClick={() => setActiveTab(option.value)}
+                                    className={activeTab === option.value ? "font-semibold text-tigerGold" : ""}
+                                >
+                                    {option.label}
+                                </DropdownMenuItem>
+                            ))}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                ) : (
+                    <Tabs
+                        defaultValue="approved"
+                        value={activeTab}
+                        onValueChange={setActiveTab}
+                        className="mb-0"
+                    >
+                        <TabsList>
+                            <TabsTrigger value="approved">
+                                All Approved Events
+                            </TabsTrigger>
+                            <TabsTrigger value="my-pending">
+                                My Pending Events
+                            </TabsTrigger>
+                            {isAdmin && (
+                                <TabsTrigger value="admin-pending">
+                                    Pending Review
+                                </TabsTrigger>
+                            )}
+                        </TabsList>
+                    </Tabs>
+                )}
+            </div>
 
-                <TabsContent value="approved">
-                    {isLoading ? (
+            <div>
+                {activeTab === "approved" && (
+                    isLoading ? (
                         <LoadingState message="Loading events..." />
                     ) : approvedEvents.length === 0 ? (
                         <EmptyState message="No approved events found. Submit one to get started!" />
@@ -66,46 +104,42 @@ const Events = () => {
                                 updateEvent.mutate({ id, is_approved: approve })
                             }
                         />
-                    )}
-                </TabsContent>
-
-                <TabsContent value="my-pending">
-                    {isLoading ? (
+                    )
+                )}
+                {activeTab === "my-pending" && (
+                    isLoading ? (
                         <LoadingState message="Loading your pending events..." />
                     ) : myPendingEvents.length === 0 ? (
                         <EmptyState message="You don't have any pending events. Submit a new event for approval!" />
                     ) : (
                         <EventGrid events={myPendingEvents} />
-                    )}
-                </TabsContent>
-
-                {isAdmin && (
-                    <TabsContent value="admin-pending">
-                        {isLoading ? (
-                            <LoadingState message="Loading unapproved events..." />
-                        ) : adminPendingEvents.length === 0 ? (
-                            <EmptyState message="No pending events to review." />
-                        ) : (
-                            <EventGrid
-                                events={adminPendingEvents}
-                                isAdmin
-                                isPending
-                                onToggleApproval={(id, approve) => {
-                                    console.log(
-                                        "Admin approving/disapproving:",
-                                        id,
-                                        approve
-                                    );
-                                    updateEvent.mutate({
-                                        id,
-                                        is_approved: approve,
-                                    });
-                                }}
-                            />
-                        )}
-                    </TabsContent>
+                    )
                 )}
-            </Tabs>
+                {activeTab === "admin-pending" && isAdmin && (
+                    isLoading ? (
+                        <LoadingState message="Loading unapproved events..." />
+                    ) : adminPendingEvents.length === 0 ? (
+                        <EmptyState message="No pending events to review." />
+                    ) : (
+                        <EventGrid
+                            events={adminPendingEvents}
+                            isAdmin
+                            isPending
+                            onToggleApproval={(id, approve) => {
+                                console.log(
+                                    "Admin approving/disapproving:",
+                                    id,
+                                    approve
+                                );
+                                updateEvent.mutate({
+                                    id,
+                                    is_approved: approve,
+                                });
+                            }}
+                        />
+                    )
+                )}
+            </div>
 
             <EventForm
                 isOpen={isFormOpen}
