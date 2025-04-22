@@ -1,6 +1,7 @@
+
 import React from "react";
-import { Link } from "react-router-dom";
-import { Search, MessageSquare, Shield } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
+import { ShoppingBag, Briefcase, Calendar, MessageSquare, Shield } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   DropdownMenu,
@@ -11,15 +12,37 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { NotificationsDropdown } from "./NotificationsDropdown";
 
+// Responsive utility: icon active color.
+const navIconBase = "p-2 rounded-full transition-colors focus:ring-2 focus:ring-primary";
+const navIconActive = "bg-tigerGold/20 text-tigerGold";
+const navIcon = "text-gray-600 hover:bg-tigerGold/10 hover:text-tigerGold";
+
 interface LayoutProps {
   children: React.ReactNode;
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { user, signOut } = useAuth();
-  
-  // Check for admin status in user's metadata
   const isAdmin = user?.user_metadata?.is_admin === true || user?.app_metadata?.is_admin === true;
+  const location = useLocation();
+
+  const navLinks = [
+    {
+      name: "Marketplace",
+      to: "/marketplace",
+      icon: <ShoppingBag size={22} aria-label="Marketplace" />,
+    },
+    {
+      name: "Services",
+      to: "/services",
+      icon: <Briefcase size={22} aria-label="Services" />,
+    },
+    {
+      name: "Events",
+      to: "/events",
+      icon: <Calendar size={22} aria-label="Events" />,
+    },
+  ];
 
   const handleSignOut = async () => {
     try {
@@ -30,35 +53,59 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   };
   
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-md py-4 px-6">
-        <div className="container mx-auto flex justify-between items-center">
-          <Link to="/" className="flex items-center gap-2">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* Header */}
+      <header className="bg-white shadow-md py-3 px-2 md:px-6">
+        <div className="container mx-auto flex flex-wrap items-center justify-between gap-2 md:gap-6">
+          <Link to="/" className="flex items-center gap-2 shrink-0">
             <div className="bg-tigerGold p-2 rounded-full">
               <span className="text-tigerBlack font-bold text-lg">TL</span>
             </div>
-            <h1 className="text-xl font-bold">Tiger Life</h1>
+            <h1 className="text-xl font-bold hidden sm:inline">Tiger Life</h1>
           </Link>
-          
-          <div className="flex items-center gap-6">
-            <Link to="/search" className="text-gray-600 hover:text-tigerGold">
-              <Search size={22} />
-            </Link>
-            <Link to="/messages" className="text-gray-600 hover:text-tigerGold">
+          {/* Responsive Navigation Icons */}
+          <nav
+            className="flex flex-1 items-center justify-center gap-2 sm:gap-4 md:gap-6"
+            aria-label="Main navigation"
+          >
+            {navLinks.map(({ name, to, icon }) => (
+              <Link
+                key={to}
+                to={to}
+                className={`
+                  ${navIconBase}
+                  ${location.pathname.startsWith(to) ? navIconActive : navIcon}
+                  focus:outline-none
+                `}
+                tabIndex={0}
+                aria-label={name}
+                title={name}
+              >
+                {icon}
+                <span className="sr-only">{name}</span>
+              </Link>
+            ))}
+          </nav>
+          {/* Profile/Notifications/Other Controls */}
+          <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+            {/* Message Icon */}
+            <Link to="/messages" className={`${navIconBase} ${navIcon}`} aria-label="Messages" title="Messages">
               <MessageSquare size={22} />
+              <span className="sr-only">Messages</span>
             </Link>
             <NotificationsDropdown />
-            
             {isAdmin && (
-              <Link 
-                to="/admin/events" 
-                className="text-gray-600 hover:text-tigerGold flex items-center"
+              <Link
+                to="/admin/events"
+                className={`${navIconBase} ${navIcon}`}
                 title="Admin Events"
+                aria-label="Admin Events"
               >
                 <Shield size={22} />
+                <span className="sr-only">Admin Events</span>
               </Link>
             )}
-            
+            {/* Profile/Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger className="focus:outline-none">
                 <Avatar>
@@ -77,20 +124,20 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     <Link to="/admin/events">Admin Events</Link>
                   </DropdownMenuItem>
                 )}
-                <DropdownMenuItem onClick={handleSignOut}>
-                  Sign out
-                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleSignOut}>Sign out</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
         </div>
       </header>
-      
-      <main className="container mx-auto px-4 py-8">
+
+      {/* Main */}
+      <main className="container mx-auto px-2 py-8 flex-1 w-full">
         {children}
       </main>
-      
-      <footer className="bg-tigerBlack text-white py-8">
+
+      {/* Footer */}
+      <footer className="bg-tigerBlack text-white py-8 mt-8">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between">
             <div>
