@@ -1,7 +1,6 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
-import { Search, MessageSquare, Bell, User } from "lucide-react";
+import { Search, MessageSquare, Bell, User, Shield } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   DropdownMenu,
@@ -49,6 +48,17 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <Link to="/notifications" className="text-gray-600 hover:text-tigerGold">
               <Bell size={22} />
             </Link>
+            
+            {user?.is_admin && (
+              <Link 
+                to="/admin/events" 
+                className="text-gray-600 hover:text-tigerGold flex items-center"
+                title="Admin Events"
+              >
+                <Shield size={22} />
+              </Link>
+            )}
+            
             <DropdownMenu>
               <DropdownMenuTrigger className="focus:outline-none">
                 <Avatar>
