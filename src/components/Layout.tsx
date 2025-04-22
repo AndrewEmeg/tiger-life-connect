@@ -90,7 +90,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             </div>
             <h1 className="text-xl font-bold hidden sm:inline">Tiger Life</h1>
           </Link>
-          <div className="flex-1 flex items-center justify-end md:hidden pr-2">
+          <div className="flex-1 flex items-center justify-end md:hidden pr-4">
             <Drawer>
               <DrawerTrigger asChild>
                 <button
