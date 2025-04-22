@@ -19,19 +19,24 @@ const Profile: React.FC = () => {
     return <div className="max-w-5xl mx-auto p-6">Not authenticated</div>;
   }
 
+  // Get user display information from either auth user object or database user object
+  const displayName = user.user_metadata?.full_name || user.full_name || "Tiger Student";
+  const avatarUrl = user.user_metadata?.avatar_url || user.profile_image;
+  const joinedDate = user.created_at || user.joined_at;
+
   return (
     <div className="max-w-5xl mx-auto p-6 space-y-8">
       {/* User Profile Header */}
       <Card>
         <CardHeader className="flex flex-row items-center gap-4">
           <Avatar className="h-20 w-20">
-            <AvatarImage src={user.user_metadata?.avatar_url || user.profile_image} />
+            <AvatarImage src={avatarUrl} />
             <AvatarFallback>{user.email?.charAt(0).toUpperCase()}</AvatarFallback>
           </Avatar>
           <div>
-            <CardTitle className="text-2xl">{user.user_metadata?.full_name || "Tiger Student"}</CardTitle>
+            <CardTitle className="text-2xl">{displayName}</CardTitle>
             <p className="text-sm text-muted-foreground">
-              Joined {formatDistanceToNow(new Date(user.created_at), { addSuffix: true })}
+              Joined {joinedDate ? formatDistanceToNow(new Date(joinedDate), { addSuffix: true }) : "recently"}
             </p>
             <p className="text-sm text-muted-foreground">{user.email}</p>
           </div>
@@ -52,7 +57,17 @@ const Profile: React.FC = () => {
               {products.map((product) => (
                 <ProductCard 
                   key={product.id} 
-                  product={{ ...product, seller: user }}
+                  product={{ 
+                    ...product, 
+                    // Create a minimal seller object with required properties
+                    seller: {
+                      id: user.id,
+                      email: user.email,
+                      full_name: displayName,
+                      joined_at: joinedDate || new Date().toISOString(),
+                      is_admin: user.is_admin || false
+                    }
+                  }}
                 />
               ))}
             </div>
@@ -67,7 +82,17 @@ const Profile: React.FC = () => {
               {services.map((service) => (
                 <ServiceCard 
                   key={service.id} 
-                  service={{ ...service, provider: user }}
+                  service={{ 
+                    ...service,
+                    // Create a minimal provider object with required properties
+                    provider: {
+                      id: user.id,
+                      email: user.email,
+                      full_name: displayName,
+                      joined_at: joinedDate || new Date().toISOString(),
+                      is_admin: user.is_admin || false
+                    }
+                  }}
                 />
               ))}
             </div>

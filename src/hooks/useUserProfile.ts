@@ -37,19 +37,10 @@ export function useUserProfile() {
     enabled: !!user?.id,
   });
 
-  const { data: orders, isLoading: isLoadingOrders } = useQuery({
-    queryKey: ["userOrders", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return [];
-      const { data, error } = await supabase
-        .from("orders")
-        .select("*, item(*)")
-        .eq("buyer_id", user.id);
-      if (error) throw error;
-      return data as Order[];
-    },
-    enabled: !!user?.id,
-  });
+  // For now, we'll return an empty array for orders since there's no orders table
+  // This can be implemented later when an orders table is created
+  const orders: Order[] = [];
+  const isLoadingOrders = false;
 
   return {
     user,

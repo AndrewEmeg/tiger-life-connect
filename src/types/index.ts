@@ -5,6 +5,11 @@ export interface User {
   profile_image?: string;
   joined_at: string;
   is_admin: boolean;
+  user_metadata?: {
+    avatar_url?: string;
+    full_name?: string;
+  };
+  created_at?: string;
 }
 
 export interface Product {
