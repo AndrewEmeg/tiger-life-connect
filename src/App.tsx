@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -15,6 +14,7 @@ import Profile from "./pages/Profile";
 import Messages from "./pages/Messages";
 import Auth from "./pages/Auth";
 import Layout from "./components/Layout";
+import AdminEvents from "./pages/AdminEvents";
 
 const queryClient = new QueryClient();
 
@@ -83,6 +83,16 @@ const App = () => (
                 <AuthGuard>
                   <Layout>
                     <Messages />
+                  </Layout>
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/admin/events"
+              element={
+                <AuthGuard>
+                  <Layout>
+                    <AdminEvents />
                   </Layout>
                 </AuthGuard>
               }
