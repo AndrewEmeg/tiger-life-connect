@@ -66,18 +66,20 @@ const ServiceDetail: React.FC = () => {
         <div className="space-y-4">
           <h1 className="text-3xl font-bold">{service.title}</h1>
           
-          <div className="flex items-center mb-4">
-            <Avatar className="h-8 w-8 mr-2">
-              <AvatarImage src={service.provider.profile_image} />
-              <AvatarFallback><User className="h-4 w-4" /></AvatarFallback>
-            </Avatar>
-            <div>
-              <p className="text-sm font-medium">{service.provider.full_name}</p>
-              <p className="text-xs text-muted-foreground">
-                Posted {formatDistanceToNow(new Date(service.created_at), { addSuffix: true })}
-              </p>
+          {service.provider && (
+            <div className="flex items-center mb-4">
+              <Avatar className="h-8 w-8 mr-2">
+                <AvatarImage src={service.provider.profile_image} />
+                <AvatarFallback><User className="h-4 w-4" /></AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="text-sm font-medium">{service.provider.full_name}</p>
+                <p className="text-xs text-muted-foreground">
+                  Posted {formatDistanceToNow(new Date(service.created_at), { addSuffix: true })}
+                </p>
+              </div>
             </div>
-          </div>
+          )}
           
           <div className="border-t border-b py-4 my-4">
             <p className="text-2xl font-bold text-primary">${service.price.toFixed(2)}</p>
