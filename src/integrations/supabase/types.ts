@@ -40,7 +40,15 @@ export type Database = {
           organizer_id?: string
           title?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_events_organizer"
+            columns: ["organizer_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       messages: {
         Row: {

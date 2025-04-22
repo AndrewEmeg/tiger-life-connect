@@ -33,10 +33,13 @@ export function useEvents() {
 
     // Fetch events
     const { data: events = [], isLoading } = useQuery({
-        queryKey: ["events"],
+        queryKey: ["events", isAdmin, user?.id],
         queryFn: async () => {
+            // Always start with the base query selecting events with organizer info
             let query = supabase.from("events").select("*, organizer:users(*)");
 
+            // If user is admin, fetch ALL events without filtering
+            // Otherwise, only fetch approved events OR events created by the current user
             if (!isAdmin) {
                 if (user?.id) {
                     query = query.or(
@@ -55,7 +58,8 @@ export function useEvents() {
                 console.error("Error fetching events:", error);
                 throw error;
             }
-
+            
+            console.log("Fetched events:", data);
             return data as unknown as Event[];
         },
         enabled: !!user,

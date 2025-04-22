@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link } from "react-router-dom";
 import { Event } from "@/types";
@@ -17,6 +18,16 @@ const EventCard: React.FC<EventCardProps> = ({
     onToggleApproval,
 }) => {
     const eventDate = new Date(event.event_datetime);
+
+    // Improved logging for approval actions
+    const handleApprove = (id: string, approve: boolean) => {
+        console.log(
+            `Admin ${approve ? "approving" : "disapproving"} event:`,
+            id,
+            event.title
+        );
+        onToggleApproval?.(id, approve);
+    };
 
     return (
         <div className="bg-white rounded-lg shadow-md overflow-hidden transition-all hover:shadow-lg">
@@ -48,6 +59,11 @@ const EventCard: React.FC<EventCardProps> = ({
                     <div className="text-sm text-gray-600">
                         📍 {event.location}
                     </div>
+                    {event.organizer && (
+                        <div className="text-sm text-gray-600">
+                            👤 {event.organizer.full_name || "Unknown Organizer"}
+                        </div>
+                    )}
                 </div>
 
                 <div className="flex justify-between items-center">
@@ -62,26 +78,14 @@ const EventCard: React.FC<EventCardProps> = ({
                         <div className="flex gap-2">
                             {!event.is_approved ? (
                                 <button
-                                    onClick={() => {
-                                        console.log(
-                                            "Approving event:",
-                                            event.id
-                                        );
-                                        onToggleApproval?.(event.id, true);
-                                    }}
+                                    onClick={() => handleApprove(event.id, true)}
                                     className="text-xs bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
                                 >
                                     Approve
                                 </button>
                             ) : (
                                 <button
-                                    onClick={() => {
-                                        console.log(
-                                            "Disapproving event:",
-                                            event.id
-                                        );
-                                        onToggleApproval?.(event.id, false);
-                                    }}
+                                    onClick={() => handleApprove(event.id, false)}
                                     className="text-xs bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
                                 >
                                     Disapprove
