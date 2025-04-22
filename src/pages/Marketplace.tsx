@@ -1,53 +1,53 @@
 
-import React from "react";
+import React, { useState } from "react";
+import { Plus, Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import ProductCard from "@/components/ProductCard";
+import ProductForm from "@/components/ProductForm";
+import { useProducts } from "@/hooks/useProducts";
 import { Product } from "@/types";
-import { Search, Plus } from "lucide-react";
 
 const Marketplace: React.FC = () => {
-  // Mock products data (will be replaced with Supabase data)
-  const products: Product[] = [
-    {
-      id: "1",
-      title: "Textbook: Introduction to Computer Science",
-      description: "Barely used textbook for CS101. Perfect condition, no highlights or notes.",
-      price: 45.99,
-      image_url: "https://images.unsplash.com/photo-1588580000645-5f35e382fb81?q=80&w=800",
-      seller_id: "user1",
-      created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(),
-      is_active: true
-    },
-    {
-      id: "2",
-      title: "Desk Lamp",
-      description: "LED desk lamp with adjustable brightness and color temperature. Perfect for dorm rooms.",
-      price: 22.50,
-      image_url: "https://images.unsplash.com/photo-1534381337082-62b5ba96d8f1?q=80&w=800",
-      seller_id: "user2",
-      created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 4).toISOString(),
-      is_active: true
-    },
-    {
-      id: "3",
-      title: "Scientific Calculator",
-      description: "TI-84 Plus with all accessories. Works perfectly, just graduated and don't need it anymore.",
-      price: 65.00,
-      image_url: "https://images.unsplash.com/photo-1594980596870-8aa52a78d8cd?q=80&w=800",
-      seller_id: "user3",
-      created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 1).toISOString(),
-      is_active: true
-    },
-    {
-      id: "4",
-      title: "Dorm Mini Fridge",
-      description: "3.2 cubic ft mini fridge. Used for one year, works like new. Moving off-campus.",
-      price: 85.00,
-      image_url: "https://images.unsplash.com/photo-1585515320310-259814833e62?q=80&w=800",
-      seller_id: "user1",
-      created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString(),
-      is_active: true
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState<"recent" | "price_asc" | "price_desc">("recent");
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+
+  const { products, isLoading, createProduct, updateProduct, deleteProduct } = useProducts();
+
+  const handleCreateProduct = (data: Omit<Product, "id" | "created_at" | "seller_id" | "is_active">) => {
+    createProduct.mutate(data);
+  };
+
+  const handleUpdateProduct = (data: Omit<Product, "id" | "created_at" | "seller_id" | "is_active">) => {
+    if (editingProduct) {
+      updateProduct.mutate({ id: editingProduct.id, ...data });
+      setEditingProduct(null);
     }
-  ];
+  };
+
+  const handleDeleteProduct = (id: string) => {
+    if (window.confirm("Are you sure you want to delete this product?")) {
+      deleteProduct.mutate(id);
+    }
+  };
+
+  const filteredProducts = products
+    .filter(product => 
+      product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.description.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) => {
+      switch (sortBy) {
+        case "price_asc":
+          return a.price - b.price;
+        case "price_desc":
+          return b.price - a.price;
+        default:
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      }
+    });
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -55,17 +55,22 @@ const Marketplace: React.FC = () => {
         <h1 className="text-3xl font-bold">Marketplace</h1>
         <div className="flex gap-4">
           <div className="relative flex-1 md:min-w-[300px]">
-            <input
+            <Input
               type="text"
               placeholder="Search listings..."
-              className="w-full pl-10 pr-4 py-2 border rounded-full"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 pr-4 py-2"
             />
             <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
           </div>
-          <button className="bg-tigerGold text-tigerBlack px-4 py-2 rounded-full flex items-center gap-2 font-medium">
-            <Plus size={18} />
-            <span>Add Item</span>
-          </button>
+          <Button
+            onClick={() => setIsFormOpen(true)}
+            className="bg-tigerGold text-tigerBlack hover:bg-tigerGold/90"
+          >
+            <Plus size={18} className="mr-2" />
+            Add Item
+          </Button>
         </div>
       </header>
 
@@ -75,24 +80,58 @@ const Marketplace: React.FC = () => {
             <div className="flex items-center">
               <span className="text-sm font-medium mr-2">Filter:</span>
             </div>
-            <button className="px-3 py-1 text-sm bg-gray-100 rounded-full hover:bg-gray-200">
+            <Button
+              variant={sortBy === "recent" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSortBy("recent")}
+            >
               Recent
-            </button>
-            <button className="px-3 py-1 text-sm bg-gray-100 rounded-full hover:bg-gray-200">
+            </Button>
+            <Button
+              variant={sortBy === "price_asc" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSortBy("price_asc")}
+            >
               Price: Low to High
-            </button>
-            <button className="px-3 py-1 text-sm bg-gray-100 rounded-full hover:bg-gray-200">
+            </Button>
+            <Button
+              variant={sortBy === "price_desc" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSortBy("price_desc")}
+            >
               Price: High to Low
-            </button>
+            </Button>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {products.map((product) => (
-          <ProductCard key={product.id} product={product} />
-        ))}
-      </div>
+      {isLoading ? (
+        <div className="text-center">Loading...</div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {filteredProducts.map((product) => (
+            <ProductCard
+              key={product.id}
+              product={product}
+              onEdit={() => {
+                setEditingProduct(product);
+                setIsFormOpen(true);
+              }}
+              onDelete={() => handleDeleteProduct(product.id)}
+            />
+          ))}
+        </div>
+      )}
+
+      <ProductForm
+        isOpen={isFormOpen}
+        onClose={() => {
+          setIsFormOpen(false);
+          setEditingProduct(null);
+        }}
+        product={editingProduct || undefined}
+        onSubmit={editingProduct ? handleUpdateProduct : handleCreateProduct}
+      />
     </div>
   );
 };
