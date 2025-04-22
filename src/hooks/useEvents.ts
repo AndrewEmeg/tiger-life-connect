@@ -23,7 +23,7 @@ export function useEvents() {
       const { data, error } = await query.order("event_datetime", { ascending: true });
       
       if (error) throw error;
-      return data as Event[];
+      return data as unknown as Event[];
     },
   });
 

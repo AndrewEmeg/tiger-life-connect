@@ -38,7 +38,14 @@ const EventForm: React.FC<EventFormProps> = ({ event, isOpen, onClose, onSubmit 
   });
 
   const handleSubmit = (data: EventFormData) => {
-    onSubmit(data);
+    // Ensure all fields are present, not optional
+    const eventData: Omit<Event, "id" | "created_at" | "is_approved" | "organizer_id"> = {
+      title: data.title,
+      description: data.description,
+      event_datetime: data.event_datetime,
+      location: data.location,
+    };
+    onSubmit(eventData);
     form.reset();
     onClose();
   };
