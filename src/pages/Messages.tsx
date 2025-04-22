@@ -27,7 +27,6 @@ const Messages: React.FC = () => {
     
     const messagesEndRef = useRef<HTMLDivElement>(null);
     
-    // Fetch receiver details
     useEffect(() => {
         async function fetchReceiverDetails() {
             if (!selectedConversation) {
@@ -76,13 +75,11 @@ const Messages: React.FC = () => {
         fetchReceiverDetails();
     }, [selectedConversation]);
     
-    // Fetch conversation list
     useEffect(() => {
         async function fetchConversations() {
             if (!user) return;
             
             try {
-                // Get unique conversation partners from sent and received messages
                 const { data: sentMessagesData, error: sentError } = await supabase
                     .from("messages")
                     .select("receiver_id")
@@ -99,12 +96,10 @@ const Messages: React.FC = () => {
                     
                 if (receivedError) throw receivedError;
                 
-                // Combine and deduplicate user IDs
                 const sentUserIds = sentMessagesData.map(msg => msg.receiver_id);
                 const receivedUserIds = receivedMessagesData.map(msg => msg.sender_id);
                 const uniqueUserIds = [...new Set([...sentUserIds, ...receivedUserIds])];
                 
-                // Get user details for each conversation partner
                 if (uniqueUserIds.length > 0) {
                     const { data: usersData, error: usersError } = await supabase
                         .from("users")
@@ -120,8 +115,6 @@ const Messages: React.FC = () => {
                     
                     setConversations(conversationsList);
                     
-                    // If we came here with a receiverId that doesn't exist in conversations yet,
-                    // we should add it to the list if we found the user
                     if (receiverId && receiver && !conversationsList.some(conv => conv.id === receiverId)) {
                         setConversations(prev => [...prev, { id: receiverId, user: receiver }]);
                     }
@@ -135,13 +128,11 @@ const Messages: React.FC = () => {
         fetchConversations();
     }, [user, receiver, receiverId]);
     
-    // Fetch messages for current conversation
     useEffect(() => {
         async function fetchMessages() {
             if (!user || !selectedConversation) return;
             
             try {
-                // Get messages between current user and selected user
                 const { data, error } = await supabase
                     .from("messages")
                     .select("*")
@@ -159,7 +150,6 @@ const Messages: React.FC = () => {
         fetchMessages();
     }, [user, selectedConversation]);
     
-    // Set up real-time subscription
     useEffect(() => {
         if (!user || !selectedConversation) return;
         
@@ -184,7 +174,6 @@ const Messages: React.FC = () => {
         };
     }, [user, selectedConversation]);
     
-    // Auto-scroll to bottom when messages change
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
@@ -194,23 +183,29 @@ const Messages: React.FC = () => {
         
         if (!messageText.trim() || !user || !selectedConversation || receiverNotFound) return;
         
+        const newMessage = {
+            id: crypto.randomUUID(),
+            content: messageText.trim(),
+            sender_id: user.id,
+            receiver_id: selectedConversation,
+            sent_at: new Date().toISOString()
+        };
+        
+        setMessages(prevMessages => [...prevMessages, newMessage]);
+        setMessageText("");
+        
         setSending(true);
         try {
-            const newMessage = {
-                content: messageText.trim(),
-                sender_id: user.id,
-                receiver_id: selectedConversation,
-                sent_at: new Date().toISOString()
-            };
-            
             const { error } = await supabase
                 .from("messages")
                 .insert(newMessage);
                 
-            if (error) throw error;
-            
-            // Clear input field after successful send
-            setMessageText("");
+            if (error) {
+                setMessages(prevMessages => 
+                    prevMessages.filter(msg => msg.id !== newMessage.id)
+                );
+                throw error;
+            }
         } catch (error) {
             console.error("Error sending message:", error);
             toast.error("Failed to send message");
@@ -228,7 +223,6 @@ const Messages: React.FC = () => {
             <h1 className="text-3xl font-bold mb-8">Messages</h1>
             
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                {/* Conversations sidebar */}
                 <div className="md:col-span-1 border rounded-lg overflow-hidden bg-white shadow-sm">
                     <div className="p-4 bg-gray-50 border-b">
                         <h2 className="font-semibold">Conversations</h2>
@@ -260,11 +254,9 @@ const Messages: React.FC = () => {
                     </div>
                 </div>
                 
-                {/* Chat area */}
                 <div className="md:col-span-3 border rounded-lg overflow-hidden bg-white shadow-sm flex flex-col h-[70vh]">
                     {selectedConversation && receiver ? (
                         <>
-                            {/* Chat header */}
                             <div className="p-4 bg-gray-50 border-b flex items-center">
                                 <Button 
                                     variant="ghost" 
@@ -283,7 +275,6 @@ const Messages: React.FC = () => {
                                 <h2 className="font-semibold">{receiver.full_name}</h2>
                             </div>
                             
-                            {/* Messages */}
                             <div className="flex-1 p-4 overflow-y-auto bg-gray-50">
                                 {messages.length > 0 ? (
                                     <div className="space-y-4">
@@ -321,7 +312,6 @@ const Messages: React.FC = () => {
                                 )}
                             </div>
                             
-                            {/* Message input */}
                             <form onSubmit={handleSendMessage} className="p-4 border-t bg-white">
                                 <div className="flex gap-2">
                                     <Textarea
