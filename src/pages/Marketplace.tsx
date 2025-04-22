@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,14 +7,65 @@ import ProductCard from "@/components/ProductCard";
 import ProductForm from "@/components/ProductForm";
 import { useProducts } from "@/hooks/useProducts";
 import { Product } from "@/types";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/components/ui/sonner";
 
 const Marketplace: React.FC = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<"recent" | "price_asc" | "price_desc">("recent");
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [validatingProducts, setValidatingProducts] = useState(false);
 
   const { products, isLoading, createProduct, updateProduct, deleteProduct } = useProducts();
+
+  // Check for products with invalid sellers
+  useEffect(() => {
+    const validateSellers = async () => {
+      if (!products.length) return;
+      
+      setValidatingProducts(true);
+      
+      try {
+        // Get all unique seller IDs
+        const sellerIds = [...new Set(products.map(product => product.seller_id))];
+        
+        // Check which seller IDs exist in the database
+        const { data, error } = await supabase
+          .from("users")
+          .select("id")
+          .in("id", sellerIds);
+          
+        if (error) {
+          console.error("Error validating sellers:", error);
+          return;
+        }
+        
+        // Get IDs of valid sellers
+        const validSellerIds = new Set((data || []).map(seller => seller.id));
+        
+        // Find products with invalid seller IDs
+        const invalidProducts = products.filter(
+          product => !validSellerIds.has(product.seller_id)
+        );
+        
+        if (invalidProducts.length > 0) {
+          console.warn("Found products with invalid seller IDs:", 
+            invalidProducts.map(p => ({ id: p.id, seller_id: p.seller_id, title: p.title }))
+          );
+          
+          // Optionally show a warning to admins
+          // toast.warning(`Found ${invalidProducts.length} products with invalid seller references`);
+        }
+      } catch (error) {
+        console.error("Error in seller validation:", error);
+      } finally {
+        setValidatingProducts(false);
+      }
+    };
+    
+    validateSellers();
+  }, [products]);
 
   const handleCreateProduct = (data: Omit<Product, "id" | "created_at" | "seller_id" | "is_active">) => {
     createProduct.mutate(data);
@@ -105,7 +156,7 @@ const Marketplace: React.FC = () => {
         </div>
       </div>
 
-      {isLoading ? (
+      {isLoading || validatingProducts ? (
         <div className="text-center">Loading...</div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

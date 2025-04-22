@@ -1,8 +1,8 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
-import { MessageSquare, Edit, Trash2 } from "lucide-react";
+import { MessageSquare, Edit, Trash2, AlertCircle } from "lucide-react";
 import { Product, User } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -15,6 +15,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface ProductCardProps {
     product: Product & { seller: User };
@@ -30,6 +36,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
     const { user } = useAuth();
     const navigate = useNavigate();
     const isOwner = user?.id === product.seller_id;
+    const [checkingSeller, setCheckingSeller] = useState(false);
 
     const handleActionClick = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -46,19 +53,21 @@ const ProductCard: React.FC<ProductCardProps> = ({
         }
         
         if (!product.seller_id) {
-            toast.error("Cannot message this seller");
+            toast.error("Cannot message this seller: Missing seller ID");
             return;
         }
+
+        setCheckingSeller(true);
         
-        console.log("Attempting to message seller with ID:", product.seller_id);
-        console.log("Product details:", product);
-        
-        // Check if the seller exists before navigating
         try {
+            console.log("Attempting to message seller with ID:", product.seller_id);
+            console.log("Product details:", product);
+            
+            // Check if the seller exists before navigating
             console.log("Checking if seller exists in database...");
             const { data, error } = await supabase
                 .from("users")
-                .select("*")  // Select all fields for debugging
+                .select("id")
                 .eq("id", product.seller_id);
                 
             console.log("Supabase query result:", { data, error });
@@ -71,7 +80,11 @@ const ProductCard: React.FC<ProductCardProps> = ({
             
             if (!data || data.length === 0) {
                 console.error("Seller not found in database");
-                toast.error("Seller account not found in the database");
+                toast({
+                    title: "Seller account not available",
+                    description: "This seller may have been removed from the platform",
+                    variant: "destructive"
+                });
                 return;
             }
             
@@ -81,6 +94,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
         } catch (error) {
             console.error("Exception checking seller:", error);
             toast.error("Could not connect to seller");
+        } finally {
+            setCheckingSeller(false);
         }
     };
 
@@ -116,15 +131,24 @@ const ProductCard: React.FC<ProductCardProps> = ({
                         })}
                     </div>
                     <div className="flex items-center gap-2">
-                        <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            onClick={handleMessageClick}
-                            disabled={isOwner}
-                            title={isOwner ? "This is your product" : "Message seller"}
-                        >
-                            <MessageSquare size={16} />
-                        </Button>
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button 
+                                        variant="ghost" 
+                                        size="icon" 
+                                        onClick={handleMessageClick}
+                                        disabled={isOwner || checkingSeller}
+                                        className={checkingSeller ? "animate-pulse" : ""}
+                                    >
+                                        <MessageSquare size={16} />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    {isOwner ? "This is your product" : "Message seller"}
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
 
                         {isOwner && (
                             <DropdownMenu>
