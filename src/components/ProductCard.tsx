@@ -45,44 +45,49 @@ const ProductCard: React.FC<ProductCardProps> = ({
     const handleMessageClick = async (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        
+
         if (isOwner) {
             toast.info("This is your product");
             return;
         }
-        
+
         if (!product.seller_id) {
             toast.error("Cannot message this seller: Missing seller ID");
             return;
         }
 
         setCheckingSeller(true);
-        
+
         try {
-            console.log("Attempting to message seller with ID:", product.seller_id);
+            console.log(
+                "Attempting to message seller with ID:",
+                product.seller_id
+            );
             console.log("Product details:", product);
-            
+
             // Check if the seller exists before navigating
             console.log("Checking if seller exists in database...");
             const { data, error } = await supabase
                 .from("users")
                 .select("id")
                 .eq("id", product.seller_id);
-                
+
             console.log("Supabase query result:", { data, error });
-                
+
             if (error) {
                 console.error("Error querying seller:", error);
                 toast.error(`Database error: ${error.message}`);
                 return;
             }
-            
+
             if (!data || data.length === 0) {
                 console.error("Seller not found in database");
-                toast.error("Seller account not available. This seller may have been removed from the platform.");
+                toast.error(
+                    "Seller account not available. This seller may have been removed from the platform."
+                );
                 return;
             }
-            
+
             // If we reach here, the seller exists
             console.log("Seller found, navigating to messages");
             navigate(`/messages?to=${product.seller_id}`);
@@ -109,7 +114,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                         <h3 className="font-semibold text-lg truncate">
                             {product.title}
                         </h3>
-                        <span className="font-bold text-lg text-primary">
+                        <span className="text-tigerBlack bg-green-400 p-2 rounded-full font-bold text-sm text-primary">
                             ${product.price.toFixed(2)}
                         </span>
                     </div>
@@ -129,18 +134,24 @@ const ProductCard: React.FC<ProductCardProps> = ({
                         <TooltipProvider>
                             <Tooltip>
                                 <TooltipTrigger asChild>
-                                    <Button 
-                                        variant="ghost" 
-                                        size="icon" 
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
                                         onClick={handleMessageClick}
                                         disabled={isOwner || checkingSeller}
-                                        className={checkingSeller ? "animate-pulse" : ""}
+                                        className={
+                                            checkingSeller
+                                                ? "animate-pulse"
+                                                : ""
+                                        }
                                     >
                                         <MessageSquare size={16} />
                                     </Button>
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                    {isOwner ? "This is your product" : "Message seller"}
+                                    {isOwner
+                                        ? "This is your product"
+                                        : "Message seller"}
                                 </TooltipContent>
                             </Tooltip>
                         </TooltipProvider>

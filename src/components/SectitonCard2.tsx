@@ -27,8 +27,10 @@ const SectionCard: React.FC<SectionCardProps> = ({
                 <div className="text-tigerBlack mb-4 p-3 bg-white rounded-full w-fit">
                     {icon}
                 </div>
-                <h2 className="text-2xl font-bold mb-2 text-white">{title}</h2>
-                <p className="text-white/80 mb-6">{description}</p>
+                <h2 className="text-2xl font-bold mb-2 text-tigerBlack">
+                    {title}
+                </h2>
+                <p className="text-tigerBlack/80 mb-6">{description}</p>
                 <div className="mt-auto">
                     <span className="text-sm font-semibold bg-white text-tigerBlack px-4 py-2 rounded-full inline-flex items-center">
                         Explore

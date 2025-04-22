@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
@@ -45,42 +44,45 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
     const handleMessageClick = async (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        
+
         if (isOwner) {
             toast.info("This is your service");
             return;
         }
-        
+
         if (!service.provider_id) {
             toast.error("Cannot message this provider");
             return;
         }
-        
-        console.log("Attempting to message provider with ID:", service.provider_id);
+
+        console.log(
+            "Attempting to message provider with ID:",
+            service.provider_id
+        );
         console.log("Service details:", service);
-        
+
         // Check if the provider exists before navigating
         try {
             console.log("Checking if provider exists in database...");
             const { data, error } = await supabase
                 .from("users")
-                .select("*")  // Select all fields for debugging
+                .select("*") // Select all fields for debugging
                 .eq("id", service.provider_id);
-                
+
             console.log("Supabase query result:", { data, error });
-                
+
             if (error) {
                 console.error("Error querying provider:", error);
                 toast.error(`Database error: ${error.message}`);
                 return;
             }
-            
+
             if (!data || data.length === 0) {
                 console.error("Provider not found in database");
                 toast.error("Provider account not found in the database");
                 return;
             }
-            
+
             // If we reach here, the provider exists
             console.log("Provider found, navigating to messages");
             navigate(`/messages?to=${service.provider_id}`);
@@ -105,7 +107,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
                         <h3 className="font-semibold text-lg truncate">
                             {service.title}
                         </h3>
-                        <span className="font-bold text-lg text-primary">
+                        <span className="text-tigerBlack bg-green-400 p-2 rounded-full font-bold text-sm text-primary">
                             ${service.price.toFixed(2)}
                         </span>
                     </div>
@@ -133,12 +135,16 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
                                 Buy
                             </Button>
                         )}
-                        <Button 
-                            variant="ghost" 
+                        <Button
+                            variant="ghost"
                             size="icon"
                             onClick={handleMessageClick}
                             disabled={isOwner}
-                            title={isOwner ? "This is your service" : "Message provider"}
+                            title={
+                                isOwner
+                                    ? "This is your service"
+                                    : "Message provider"
+                            }
                         >
                             <MessageSquare size={16} />
                         </Button>
