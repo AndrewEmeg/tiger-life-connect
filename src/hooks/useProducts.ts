@@ -1,7 +1,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Product } from "@/types";
+import { Product, User } from "@/types";
 import { toast } from "@/components/ui/sonner";
 
 export const useProducts = () => {
