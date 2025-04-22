@@ -1,7 +1,6 @@
-
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { ShoppingBag, Briefcase, Calendar, MessageSquare, Shield, Menu } from "lucide-react";
+import { ShoppingBag, Briefcase, Calendar, MessageSquare, Shield, Menu, Bell } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   DropdownMenu,
@@ -19,7 +18,6 @@ import {
   DrawerClose,
 } from "@/components/ui/drawer";
 
-// Responsive utility: icon active color.
 const navIconBase = "p-2 rounded-full transition-colors focus:ring-2 focus:ring-primary";
 const navIconActive = "bg-tigerGold/20 text-tigerGold";
 const navIcon = "text-gray-600 hover:bg-tigerGold/10 hover:text-tigerGold";
@@ -59,7 +57,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     }
   };
 
-  // Render navigation links (for both desktop and mobile)
   const renderNavLinks = (onClick?: () => void) => (
     <>
       {navLinks.map(({ name, to, icon }) => (
@@ -85,7 +82,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Header */}
       <header className="bg-white shadow-md py-3 px-2 md:px-6 w-full z-30">
         <div className="container mx-auto flex flex-wrap items-center justify-between gap-2 md:gap-6">
           <Link to="/" className="flex items-center gap-2 shrink-0">
@@ -94,7 +90,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             </div>
             <h1 className="text-xl font-bold hidden sm:inline">Tiger Life</h1>
           </Link>
-          {/* Hamburger menu for mobile */}
           <div className="flex-1 flex items-center justify-center sm:justify-center md:hidden">
             <Drawer>
               <DrawerTrigger asChild>
@@ -134,7 +129,16 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     <MessageSquare size={22} />
                     <span className="ml-2">Messages</span>
                   </Link>
-                  <NotificationsDropdown />
+                  <Link
+                    to="/notifications"
+                    className="flex items-center gap-2 px-2 py-2 rounded text-gray-700 hover:bg-tigerGold/10 hover:text-tigerGold transition-colors font-medium"
+                    tabIndex={0}
+                    aria-label="Notifications"
+                  >
+                    <Bell size={22} />
+                    <span className="ml-2">Notifications</span>
+                    <NotificationsDropdown />
+                  </Link>
                   {isAdmin && (
                     <Link
                       to="/admin/events"
@@ -168,7 +172,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               </DrawerContent>
             </Drawer>
           </div>
-          {/* Desktop nav icons (hide on mobile) */}
           <nav
             className="hidden md:flex flex-1 items-center justify-center gap-2 sm:gap-4 md:gap-6"
             aria-label="Main navigation"
@@ -191,7 +194,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               </Link>
             ))}
           </nav>
-          {/* Desktop-only profile and notifications */}
           <div className="hidden md:flex items-center gap-2 sm:gap-4 shrink-0">
             <Link to="/messages" className={`${navIconBase} ${navIcon}`} aria-label="Messages" title="Messages">
               <MessageSquare size={22} />
@@ -234,12 +236,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         </div>
       </header>
 
-      {/* Main */}
       <main className="container mx-auto px-2 py-8 flex-1 w-full">
         {children}
       </main>
 
-      {/* Footer */}
       <footer className="bg-tigerBlack text-white py-8 mt-8">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between">
@@ -269,4 +269,3 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 };
 
 export default Layout;
-
