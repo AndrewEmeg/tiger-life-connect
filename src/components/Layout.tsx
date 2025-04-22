@@ -2,12 +2,30 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Search, MessageSquare, Bell, User } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
+  const { user, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -31,9 +49,24 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <Link to="/notifications" className="text-gray-600 hover:text-tigerGold">
               <Bell size={22} />
             </Link>
-            <Link to="/profile" className="text-gray-600 hover:text-tigerGold">
-              <User size={22} />
-            </Link>
+            <DropdownMenu>
+              <DropdownMenuTrigger className="focus:outline-none">
+                <Avatar>
+                  <AvatarImage src={user?.user_metadata?.avatar_url} />
+                  <AvatarFallback>
+                    {user?.email?.charAt(0).toUpperCase() ?? 'U'}
+                  </AvatarFallback>
+                </Avatar>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem asChild>
+                  <Link to="/profile">Profile</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleSignOut}>
+                  Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </header>
