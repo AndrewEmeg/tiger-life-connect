@@ -15,6 +15,7 @@ serve(async (req) => {
   }
   
   try {
+    // Initialize Stripe
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2023-10-16",
       httpClient: Stripe.createFetchHttpClient(),
@@ -23,6 +24,16 @@ serve(async (req) => {
     // Get the request body
     const body = await req.json();
     const { itemId, itemType, price, title, description, sellerId } = body;
+    
+    // Log received data for debugging
+    console.log("Received checkout request:", { itemId, itemType, price, title, description, sellerId });
+
+    if (!itemId || !itemType || !price || !title || !sellerId) {
+      return new Response(
+        JSON.stringify({ error: "Missing required fields" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+      );
+    }
 
     // Get the JWT token from the Authorization header
     const authHeader = req.headers.get("Authorization");
@@ -55,6 +66,8 @@ serve(async (req) => {
       );
     }
 
+    console.log("User authenticated:", user.id);
+
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
@@ -64,7 +77,7 @@ serve(async (req) => {
             currency: "usd",
             product_data: {
               name: title,
-              description: description,
+              description: description || "",
             },
             unit_amount: Math.round(price * 100), // convert to cents
           },
@@ -76,10 +89,12 @@ serve(async (req) => {
       cancel_url: `${req.headers.get("origin")}/${itemType === "product" ? "marketplace" : "services"}`,
     });
 
+    console.log("Stripe session created:", session.id);
+
     // Connect to Supabase with the service role key to bypass RLS
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL") || "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || ""
     );
 
     // Create an order in the database
@@ -97,6 +112,9 @@ serve(async (req) => {
 
     if (orderError) {
       console.error("Error creating order:", orderError);
+      // Continue with the checkout even if order creation fails
+    } else {
+      console.log("Order created successfully");
     }
 
     return new Response(
@@ -104,7 +122,7 @@ serve(async (req) => {
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
     );
   } catch (error) {
-    console.error("Error:", error);
+    console.error("Error in create-checkout:", error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }

@@ -42,27 +42,33 @@ const PurchaseButton = ({
 
     setIsLoading(true);
     try {
+      console.log("Creating checkout for:", { itemId, itemType, price, title, description, sellerId });
+      
       const { data, error } = await supabase.functions.invoke("create-checkout", {
         body: {
           itemId,
           itemType,
           price,
           title,
-          description,
+          description: description || "",
           sellerId
         }
       });
 
       if (error) {
-        throw error;
+        console.error("Checkout error:", error);
+        throw new Error(error.message || "Failed to create checkout session");
       }
 
-      if (data?.url) {
-        window.location.href = data.url;
+      if (!data?.url) {
+        throw new Error("No checkout URL returned from server");
       }
+
+      console.log("Checkout successful, redirecting to:", data.url);
+      window.location.href = data.url;
     } catch (error) {
       console.error("Error creating checkout session:", error);
-      toast.error("Unable to process payment. Please try again.");
+      toast.error("Unable to process payment. Please try again later.");
     } finally {
       setIsLoading(false);
     }
