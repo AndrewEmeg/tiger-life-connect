@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Plus, Search, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -54,7 +53,7 @@ const Services: React.FC = () => {
     });
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8">
       <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
         <h1 className="text-3xl font-bold">Services</h1>
         <div className="flex gap-4">
