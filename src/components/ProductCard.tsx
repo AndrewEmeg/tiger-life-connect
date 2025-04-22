@@ -50,24 +50,36 @@ const ProductCard: React.FC<ProductCardProps> = ({
             return;
         }
         
+        console.log("Attempting to message seller with ID:", product.seller_id);
+        console.log("Product details:", product);
+        
         // Check if the seller exists before navigating
         try {
+            console.log("Checking if seller exists in database...");
             const { data, error } = await supabase
                 .from("users")
-                .select("id")
-                .eq("id", product.seller_id)
-                .single();
+                .select("*")  // Select all fields for debugging
+                .eq("id", product.seller_id);
                 
-            if (error || !data) {
-                console.error("Seller not found:", error);
-                toast.error("Seller account not available");
+            console.log("Supabase query result:", { data, error });
+                
+            if (error) {
+                console.error("Error querying seller:", error);
+                toast.error(`Database error: ${error.message}`);
+                return;
+            }
+            
+            if (!data || data.length === 0) {
+                console.error("Seller not found in database");
+                toast.error("Seller account not found in the database");
                 return;
             }
             
             // If we reach here, the seller exists
+            console.log("Seller found, navigating to messages");
             navigate(`/messages?to=${product.seller_id}`);
         } catch (error) {
-            console.error("Error checking seller:", error);
+            console.error("Exception checking seller:", error);
             toast.error("Could not connect to seller");
         }
     };

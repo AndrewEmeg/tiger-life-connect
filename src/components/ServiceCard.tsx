@@ -56,24 +56,36 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
             return;
         }
         
+        console.log("Attempting to message provider with ID:", service.provider_id);
+        console.log("Service details:", service);
+        
         // Check if the provider exists before navigating
         try {
+            console.log("Checking if provider exists in database...");
             const { data, error } = await supabase
                 .from("users")
-                .select("id")
-                .eq("id", service.provider_id)
-                .single();
+                .select("*")  // Select all fields for debugging
+                .eq("id", service.provider_id);
                 
-            if (error || !data) {
-                console.error("Provider not found:", error);
-                toast.error("Provider account not available");
+            console.log("Supabase query result:", { data, error });
+                
+            if (error) {
+                console.error("Error querying provider:", error);
+                toast.error(`Database error: ${error.message}`);
+                return;
+            }
+            
+            if (!data || data.length === 0) {
+                console.error("Provider not found in database");
+                toast.error("Provider account not found in the database");
                 return;
             }
             
             // If we reach here, the provider exists
+            console.log("Provider found, navigating to messages");
             navigate(`/messages?to=${service.provider_id}`);
         } catch (error) {
-            console.error("Error checking provider:", error);
+            console.error("Exception checking provider:", error);
             toast.error("Could not connect to provider");
         }
     };

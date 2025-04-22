@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -40,22 +39,33 @@ const Messages: React.FC = () => {
             setReceiverNotFound(false);
             
             try {
+                console.log("Fetching receiver details for ID:", selectedConversation);
+                
                 const { data, error } = await supabase
                     .from("users")
                     .select("*")
                     .eq("id", selectedConversation);
                     
-                if (error) throw error;
+                console.log("Receiver query result:", { data, error });
                 
-                if (data && data.length > 0) {
-                    setReceiver(data[0] as User);
-                } else {
-                    console.error("Receiver not found:", selectedConversation);
+                if (error) {
+                    console.error("Error fetching receiver details:", error);
                     setReceiverNotFound(true);
-                    toast.error("User not found");
+                    toast.error(`Database error: ${error.message}`);
+                    return;
                 }
+                
+                if (!data || data.length === 0) {
+                    console.error("Receiver not found in database. ID:", selectedConversation);
+                    setReceiverNotFound(true);
+                    toast.error("User not found in the database");
+                    return;
+                }
+                
+                console.log("Receiver found:", data[0]);
+                setReceiver(data[0] as User);
             } catch (error) {
-                console.error("Error fetching receiver details:", error);
+                console.error("Exception fetching receiver details:", error);
                 setReceiverNotFound(true);
                 toast.error("Could not load user details");
             } finally {
