@@ -1,11 +1,12 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEvents } from "@/hooks/useEvents";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 const AdminEvents = () => {
   const navigate = useNavigate();
@@ -14,12 +15,23 @@ const AdminEvents = () => {
   const [filter, setFilter] = useState<"all" | "pending" | "approved">("pending");
 
   // Redirect if not admin
-  React.useEffect(() => {
-    if (!isAdmin) {
+  useEffect(() => {
+    if (user && !isAdmin) {
+      toast.error("You don't have permission to access this page");
       navigate("/");
     }
-  }, [isAdmin, navigate]);
+  }, [user, isAdmin, navigate]);
 
+  // If still loading user or not logged in, show loading
+  if (!user) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin h-8 w-8 border-4 border-tigerGold border-t-transparent rounded-full"></div>
+      </div>
+    );
+  }
+
+  // If not admin, don't render anything (will redirect)
   if (!isAdmin) return null;
 
   const filteredEvents = events.filter((event) => {
@@ -27,6 +39,19 @@ const AdminEvents = () => {
     if (filter === "approved") return event.is_approved;
     return true;
   });
+
+  const handleApprove = (id: string, currentStatus: boolean) => {
+    updateEvent.mutate({
+      id,
+      is_approved: !currentStatus
+    });
+  };
+
+  const handleDelete = (id: string) => {
+    if (window.confirm("Are you sure you want to delete this event?")) {
+      deleteEvent.mutate(id);
+    }
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
@@ -36,25 +61,35 @@ const AdminEvents = () => {
         <Button
           variant={filter === "pending" ? "default" : "outline"}
           onClick={() => setFilter("pending")}
+          className={filter === "pending" ? "bg-tigerGold text-tigerBlack hover:bg-tigerGold/90" : ""}
         >
           Pending
         </Button>
         <Button
           variant={filter === "approved" ? "default" : "outline"}
           onClick={() => setFilter("approved")}
+          className={filter === "approved" ? "bg-tigerGold text-tigerBlack hover:bg-tigerGold/90" : ""}
         >
           Approved
         </Button>
         <Button
           variant={filter === "all" ? "default" : "outline"}
           onClick={() => setFilter("all")}
+          className={filter === "all" ? "bg-tigerGold text-tigerBlack hover:bg-tigerGold/90" : ""}
         >
           All
         </Button>
       </div>
 
       {isLoading ? (
-        <div className="text-center">Loading events...</div>
+        <div className="text-center py-8">
+          <div className="animate-spin h-8 w-8 border-4 border-tigerGold border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p>Loading events...</p>
+        </div>
+      ) : filteredEvents.length === 0 ? (
+        <div className="text-center p-8 bg-white rounded-lg shadow">
+          <p className="text-gray-500">No {filter !== 'all' ? filter : ''} events found.</p>
+        </div>
       ) : (
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <Table>
@@ -72,7 +107,7 @@ const AdminEvents = () => {
               {filteredEvents.map((event) => (
                 <TableRow key={event.id}>
                   <TableCell className="font-medium">{event.title}</TableCell>
-                  <TableCell>{event.organizer?.full_name}</TableCell>
+                  <TableCell>{event.organizer?.full_name || 'Unknown'}</TableCell>
                   <TableCell>
                     {format(new Date(event.event_datetime), "PPp")}
                   </TableCell>
@@ -92,23 +127,15 @@ const AdminEvents = () => {
                     <Button
                       size="sm"
                       variant={event.is_approved ? "outline" : "default"}
-                      onClick={() =>
-                        updateEvent.mutate({
-                          id: event.id,
-                          is_approved: !event.is_approved,
-                        })
-                      }
+                      onClick={() => handleApprove(event.id, event.is_approved)}
+                      className={!event.is_approved ? "bg-tigerGold text-tigerBlack hover:bg-tigerGold/90" : ""}
                     >
                       {event.is_approved ? "Revoke" : "Approve"}
                     </Button>
                     <Button
                       size="sm"
                       variant="destructive"
-                      onClick={() => {
-                        if (window.confirm("Are you sure you want to delete this event?")) {
-                          deleteEvent.mutate(event.id);
-                        }
-                      }}
+                      onClick={() => handleDelete(event.id)}
                     >
                       Delete
                     </Button>

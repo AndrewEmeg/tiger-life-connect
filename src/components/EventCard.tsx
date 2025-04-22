@@ -6,9 +6,10 @@ import { format } from "date-fns";
 
 interface EventCardProps {
   event: Event;
+  isPending?: boolean;
 }
 
-const EventCard: React.FC<EventCardProps> = ({ event }) => {
+const EventCard: React.FC<EventCardProps> = ({ event, isPending = false }) => {
   const eventDate = new Date(event.event_datetime);
   
   return (
@@ -16,9 +17,11 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
       <div className="p-4">
         <div className="flex justify-between items-start mb-3">
           <h3 className="font-semibold text-lg">{event.title}</h3>
-          {event.is_approved && (
+          {event.is_approved ? (
             <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">Official</span>
-          )}
+          ) : isPending ? (
+            <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded">Pending</span>
+          ) : null}
         </div>
         <p className="text-gray-600 text-sm line-clamp-2 mb-4">{event.description}</p>
         

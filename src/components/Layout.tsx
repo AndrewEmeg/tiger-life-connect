@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link } from "react-router-dom";
 import { Search, MessageSquare, Bell, User, Shield } from "lucide-react";
@@ -72,6 +73,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <DropdownMenuItem asChild>
                   <Link to="/profile">Profile</Link>
                 </DropdownMenuItem>
+                {user?.is_admin && (
+                  <DropdownMenuItem asChild>
+                    <Link to="/admin/events">Admin Events</Link>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem onClick={handleSignOut}>
                   Sign out
                 </DropdownMenuItem>
