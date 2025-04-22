@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
@@ -80,11 +79,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             
             if (!data || data.length === 0) {
                 console.error("Seller not found in database");
-                toast({
-                    title: "Seller account not available",
-                    description: "This seller may have been removed from the platform",
-                    variant: "destructive"
-                });
+                toast.error("Seller account not available. This seller may have been removed from the platform.");
                 return;
             }
             

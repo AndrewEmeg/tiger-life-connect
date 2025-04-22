@@ -54,7 +54,7 @@ const Marketplace: React.FC = () => {
             invalidProducts.map(p => ({ id: p.id, seller_id: p.seller_id, title: p.title }))
           );
           
-          // Optionally show a warning to admins
+          // Optionally show a warning to admins using toast
           // toast.warning(`Found ${invalidProducts.length} products with invalid seller references`);
         }
       } catch (error) {
