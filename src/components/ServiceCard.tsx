@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
@@ -37,6 +38,12 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
         e.preventDefault();
         e.stopPropagation();
         navigate(`/service/${service.id}`);
+    };
+
+    const handleMessageClick = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        navigate(`/messages?to=${service.provider_id}`);
     };
 
     return (
@@ -82,10 +89,12 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
                                 Buy
                             </Button>
                         )}
-                        <Button variant="ghost" size="icon" asChild>
-                            <Link to={`/messages?to=${service.provider_id}`}>
-                                <MessageSquare size={16} />
-                            </Link>
+                        <Button 
+                            variant="ghost" 
+                            size="icon"
+                            onClick={handleMessageClick}
+                        >
+                            <MessageSquare size={16} />
                         </Button>
 
                         {isOwner && (

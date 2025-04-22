@@ -1,5 +1,6 @@
+
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { MessageSquare, Edit, Trash2 } from "lucide-react";
 import { Product, User } from "@/types";
@@ -25,11 +26,18 @@ const ProductCard: React.FC<ProductCardProps> = ({
     onDelete,
 }) => {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const isOwner = user?.id === product.seller_id;
 
     const handleActionClick = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
+    };
+
+    const handleMessageClick = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        navigate(`/messages?to=${product.seller_id}`);
     };
 
     return (
@@ -64,10 +72,12 @@ const ProductCard: React.FC<ProductCardProps> = ({
                         })}
                     </div>
                     <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="icon" asChild>
-                            <Link to={`/messages?to=${product.seller_id}`}>
-                                <MessageSquare size={16} />
-                            </Link>
+                        <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={handleMessageClick}
+                        >
+                            <MessageSquare size={16} />
                         </Button>
 
                         {isOwner && (
