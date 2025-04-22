@@ -10,6 +10,7 @@ import { useUserProfile } from "@/hooks/useUserProfile";
 import { Link } from "react-router-dom";
 import ProfileImageUpload from "@/components/ProfileImageUpload";
 import { User } from "@/types";
+import { User as SupabaseUser } from "@supabase/supabase-js";
 
 const Profile: React.FC = () => {
   const { user, products, services, orders, isLoading } = useUserProfile();
@@ -24,22 +25,25 @@ const Profile: React.FC = () => {
 
   // Enhanced type-safe extraction of user details
   const displayName = 
-    (user as User).full_name || 
-    user.user_metadata?.full_name || 
+    (user as User)?.full_name || 
+    (user as SupabaseUser)?.user_metadata?.full_name || 
     (user.email?.split('@')[0] || "Tiger Student");
   
   const avatarUrl = 
-    (user as User).profile_image || 
-    user.user_metadata?.profile_image || 
-    user.user_metadata?.avatar_url || 
+    (user as User)?.profile_image || 
+    (user as SupabaseUser)?.user_metadata?.profile_image || 
+    (user as SupabaseUser)?.user_metadata?.avatar_url || 
     null;
   
-  const joinedDate = (user as User).joined_at || user.created_at;
+  const joinedDate = 
+    (user as User)?.joined_at || 
+    (user as SupabaseUser)?.created_at || 
+    new Date().toISOString();
   
   const isAdmin = 
-    (user as User).is_admin || 
-    user.user_metadata?.is_admin === true || 
-    user.app_metadata?.is_admin === true;
+    (user as User)?.is_admin || 
+    (user as SupabaseUser)?.user_metadata?.is_admin === true || 
+    (user as SupabaseUser)?.app_metadata?.is_admin === true;
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -90,7 +94,6 @@ const Profile: React.FC = () => {
                   key={product.id} 
                   product={{ 
                     ...product, 
-                    // Create a minimal seller object with required properties
                     seller: {
                       id: user.id,
                       email: user.email,
@@ -115,7 +118,6 @@ const Profile: React.FC = () => {
                   key={service.id} 
                   service={{ 
                     ...service,
-                    // Create a minimal provider object with required properties
                     provider: {
                       id: user.id,
                       email: user.email,
