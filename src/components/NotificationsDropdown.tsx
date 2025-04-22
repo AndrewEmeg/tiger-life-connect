@@ -1,6 +1,6 @@
 
 import { format, formatDistanceToNow } from "date-fns";
-import { Check } from "lucide-react";
+import { Bell, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
