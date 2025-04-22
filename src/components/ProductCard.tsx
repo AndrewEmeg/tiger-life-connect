@@ -13,6 +13,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { toast } from "@/components/ui/sonner";
 
 interface ProductCardProps {
     product: Product & { seller: User };
@@ -37,6 +38,17 @@ const ProductCard: React.FC<ProductCardProps> = ({
     const handleMessageClick = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
+        
+        if (isOwner) {
+            toast.info("This is your product");
+            return;
+        }
+        
+        if (!product.seller_id) {
+            toast.error("Cannot message this seller");
+            return;
+        }
+        
         navigate(`/messages?to=${product.seller_id}`);
     };
 
@@ -76,6 +88,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
                             variant="ghost" 
                             size="icon" 
                             onClick={handleMessageClick}
+                            disabled={isOwner}
+                            title={isOwner ? "This is your product" : "Message seller"}
                         >
                             <MessageSquare size={16} />
                         </Button>

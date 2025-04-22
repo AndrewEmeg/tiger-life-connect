@@ -21,6 +21,7 @@ const Messages: React.FC = () => {
     const [messageText, setMessageText] = useState("");
     const [receiver, setReceiver] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
+    const [receiverNotFound, setReceiverNotFound] = useState(false);
     const [sending, setSending] = useState(false);
     const [conversations, setConversations] = useState<{id: string, user: User}[]>([]);
     const [selectedConversation, setSelectedConversation] = useState<string | null>(receiverId);
@@ -36,17 +37,26 @@ const Messages: React.FC = () => {
             }
             
             setLoading(true);
+            setReceiverNotFound(false);
+            
             try {
                 const { data, error } = await supabase
                     .from("users")
                     .select("*")
-                    .eq("id", selectedConversation)
-                    .single();
+                    .eq("id", selectedConversation);
                     
                 if (error) throw error;
-                setReceiver(data);
+                
+                if (data && data.length > 0) {
+                    setReceiver(data[0] as User);
+                } else {
+                    console.error("Receiver not found:", selectedConversation);
+                    setReceiverNotFound(true);
+                    toast.error("User not found");
+                }
             } catch (error) {
                 console.error("Error fetching receiver details:", error);
+                setReceiverNotFound(true);
                 toast.error("Could not load user details");
             } finally {
                 setLoading(false);
@@ -95,10 +105,16 @@ const Messages: React.FC = () => {
                     
                     const conversationsList = usersData.map(userData => ({
                         id: userData.id,
-                        user: userData
+                        user: userData as User
                     }));
                     
                     setConversations(conversationsList);
+                    
+                    // If we came here with a receiverId that doesn't exist in conversations yet,
+                    // we should add it to the list if we found the user
+                    if (receiverId && receiver && !conversationsList.some(conv => conv.id === receiverId)) {
+                        setConversations(prev => [...prev, { id: receiverId, user: receiver }]);
+                    }
                 }
             } catch (error) {
                 console.error("Error fetching conversations:", error);
@@ -107,7 +123,7 @@ const Messages: React.FC = () => {
         }
         
         fetchConversations();
-    }, [user]);
+    }, [user, receiver, receiverId]);
     
     // Fetch messages for current conversation
     useEffect(() => {
@@ -166,7 +182,7 @@ const Messages: React.FC = () => {
     const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
         
-        if (!messageText.trim() || !user || !selectedConversation) return;
+        if (!messageText.trim() || !user || !selectedConversation || receiverNotFound) return;
         
         setSending(true);
         try {
@@ -313,7 +329,7 @@ const Messages: React.FC = () => {
                                     <Button 
                                         type="submit" 
                                         size="icon" 
-                                        disabled={sending || !messageText.trim()}
+                                        disabled={sending || !messageText.trim() || receiverNotFound}
                                         className="h-[60px] w-[60px]"
                                     >
                                         <Send className="h-5 w-5" />
@@ -321,9 +337,23 @@ const Messages: React.FC = () => {
                                 </div>
                             </form>
                         </>
+                    ) : receiverNotFound ? (
+                        <div className="h-full flex flex-col items-center justify-center p-4">
+                            <p className="text-red-500 mb-2">User not found</p>
+                            <p className="text-gray-500 text-center mb-4">
+                                The user you're trying to message doesn't exist or has been removed.
+                            </p>
+                            <Button onClick={() => setSelectedConversation(null)}>
+                                Return to Conversations
+                            </Button>
+                        </div>
+                    ) : loading ? (
+                        <div className="h-full flex items-center justify-center text-gray-500">
+                            Loading...
+                        </div>
                     ) : (
                         <div className="h-full flex items-center justify-center text-gray-500 p-4">
-                            {loading ? "Loading..." : "Select a conversation to start chatting"}
+                            Select a conversation to start chatting
                         </div>
                     )}
                 </div>
