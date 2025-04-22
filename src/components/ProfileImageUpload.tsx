@@ -1,6 +1,6 @@
 
 import { useState, useRef, ChangeEvent } from "react";
-import { Pencil } from "lucide-react";
+import { Pencil, Loader2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
@@ -62,7 +62,10 @@ const ProfileImageUpload = ({ imageUrl, size = "lg", onImageUpdated }: ProfileIm
           upsert: true
         });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error("Upload error:", uploadError);
+        throw new Error(uploadError.message || "Failed to upload image");
+      }
 
       // Get public URL
       const { data } = supabase.storage.from('profiles').getPublicUrl(fileName);
@@ -86,9 +89,9 @@ const ProfileImageUpload = ({ imageUrl, size = "lg", onImageUpdated }: ProfileIm
       }
       
       toast.success("Profile picture updated!");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error uploading image:", error);
-      toast.error("Failed to update profile picture");
+      toast.error(`Failed to update profile picture: ${error.message || "Unknown error"}`);
     } finally {
       setIsUploading(false);
       // Reset file input
@@ -101,19 +104,29 @@ const ProfileImageUpload = ({ imageUrl, size = "lg", onImageUpdated }: ProfileIm
   return (
     <div className="relative inline-block group">
       <Avatar className={`${sizeClasses[size]} border-2 border-white shadow-sm`}>
-        <AvatarImage src={imageUrl || ''} alt="Profile" />
-        <AvatarFallback className="bg-tigerGold text-tigerBlack font-semibold">
-          {isUploading ? "..." : generateFallback()}
-        </AvatarFallback>
+        {isUploading ? (
+          <AvatarFallback className="bg-gray-200">
+            <Loader2 className="h-8 w-8 text-gray-500 animate-spin" />
+          </AvatarFallback>
+        ) : (
+          <>
+            <AvatarImage src={imageUrl || ''} alt="Profile" />
+            <AvatarFallback className="bg-tigerGold text-tigerBlack font-semibold">
+              {generateFallback()}
+            </AvatarFallback>
+          </>
+        )}
       </Avatar>
       
       {/* Edit overlay */}
-      <div 
-        className="absolute top-0 right-0 p-1 bg-tigerGold rounded-full shadow-sm cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
-        onClick={() => fileInputRef.current?.click()}
-      >
-        <Pencil className="h-3 w-3 text-tigerBlack" />
-      </div>
+      {!isUploading && (
+        <div 
+          className="absolute top-0 right-0 p-1 bg-tigerGold rounded-full shadow-sm cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
+          onClick={() => fileInputRef.current?.click()}
+        >
+          <Pencil className="h-3 w-3 text-tigerBlack" />
+        </div>
+      )}
       
       <input 
         type="file"

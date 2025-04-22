@@ -1,19 +1,23 @@
 
 import * as React from "react"
 import { cn } from "@/lib/utils"
+import { Loader2 } from "lucide-react"
 
 interface FileInputProps extends React.ComponentPropsWithoutRef<"input"> {
   containerClassName?: string;
+  isUploading?: boolean;
 }
 
 const FileInput = React.forwardRef<HTMLInputElement, FileInputProps>(
-  ({ className, containerClassName, accept, ...props }, ref) => {
+  ({ className, containerClassName, accept, isUploading = false, ...props }, ref) => {
     // Create a reference to the hidden file input
     const inputRef = React.useRef<HTMLInputElement>(null);
     const displayRef = React.useRef<HTMLDivElement>(null);
 
     const handleButtonClick = () => {
-      inputRef.current?.click();
+      if (!isUploading) {
+        inputRef.current?.click();
+      }
     };
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -35,11 +39,22 @@ const FileInput = React.forwardRef<HTMLInputElement, FileInputProps>(
           <button
             type="button"
             onClick={handleButtonClick}
-            className="bg-tigerBlack text-white px-3 py-2 rounded cursor-pointer hover:bg-tigerBlack/90 transition-colors"
+            disabled={isUploading}
+            className={cn(
+              "bg-tigerBlack text-white px-3 py-2 rounded cursor-pointer hover:bg-tigerBlack/90 transition-colors flex items-center justify-center min-w-[110px]",
+              isUploading ? "opacity-70 cursor-not-allowed" : ""
+            )}
           >
-            Choose File
+            {isUploading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Uploading...
+              </>
+            ) : (
+              "Choose File"
+            )}
           </button>
-          <div ref={displayRef} className="text-sm text-gray-500">
+          <div ref={displayRef} className="text-sm text-gray-500 truncate max-w-[200px]">
             No file chosen
           </div>
         </div>
@@ -58,6 +73,7 @@ const FileInput = React.forwardRef<HTMLInputElement, FileInputProps>(
           accept={accept}
           {...props}
           onChange={handleFileChange}
+          disabled={isUploading}
         />
       </div>
     );

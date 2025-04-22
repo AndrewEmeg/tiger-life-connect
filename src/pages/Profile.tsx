@@ -24,7 +24,7 @@ const Profile: React.FC = () => {
 
   // Get user display information from either auth user object or database user object
   const displayName = user.user_metadata?.full_name || user.email?.split('@')[0] || "Tiger Student";
-  const avatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.profile_image;
+  const avatarUrl = user.profile_image || user.user_metadata?.avatar_url || null;
   const joinedDate = user.created_at;
   const isAdmin = user.user_metadata?.is_admin === true || user.app_metadata?.is_admin === true;
 
