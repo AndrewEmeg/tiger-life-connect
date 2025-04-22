@@ -90,11 +90,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             </div>
             <h1 className="text-xl font-bold hidden sm:inline">Tiger Life</h1>
           </Link>
-          <div className="flex-1 flex items-center justify-center sm:justify-center md:hidden">
+          <div className="flex-1 flex items-center justify-end md:hidden pr-2">
             <Drawer>
               <DrawerTrigger asChild>
                 <button
-                  className="block md:hidden p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-primary"
                   aria-label="Open navigation menu"
                   aria-haspopup="true"
                   data-testid="mobile-menu-open"
