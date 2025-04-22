@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Plus, Search, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -117,7 +118,7 @@ const Marketplace: React.FC = () => {
       </header>
 
       <div className="mb-8">
-        <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
+        <div className="bg-white p-0 rounded-lg shadow-sm mb-6">
           {isMobile ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -210,3 +211,4 @@ const Marketplace: React.FC = () => {
 };
 
 export default Marketplace;
+
