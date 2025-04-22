@@ -1,53 +1,53 @@
 
-import React from "react";
+import React, { useState } from "react";
+import { Plus, Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import ServiceCard from "@/components/ServiceCard";
+import ServiceForm from "@/components/ServiceForm";
+import { useServices } from "@/hooks/useServices";
 import { Service } from "@/types";
-import { Search, Plus } from "lucide-react";
 
 const Services: React.FC = () => {
-  // Mock services data (will be replaced with Supabase data)
-  const services: Service[] = [
-    {
-      id: "1",
-      title: "Math Tutoring",
-      description: "Experienced tutor for Calculus, Linear Algebra, and Statistics. Flexible hours.",
-      price: 25.00,
-      image_url: "https://images.unsplash.com/photo-1501504905252-473c47e087f8?q=80&w=800",
-      provider_id: "user1",
-      created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString(),
-      is_active: true
-    },
-    {
-      id: "2",
-      title: "Professional Haircuts",
-      description: "Men's and women's haircuts. Experienced stylist, affordable prices for students.",
-      price: 15.00,
-      image_url: "https://images.unsplash.com/photo-1589710751893-f9a6770ad71b?q=80&w=800",
-      provider_id: "user2",
-      created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(),
-      is_active: true
-    },
-    {
-      id: "3",
-      title: "Resume & Cover Letter Design",
-      description: "Get a professional resume designed to help you land internships and jobs.",
-      price: 30.00,
-      image_url: "https://images.unsplash.com/photo-1586281380117-5a60ae2050cc?q=80&w=800",
-      provider_id: "user3",
-      created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5).toISOString(),
-      is_active: true
-    },
-    {
-      id: "4",
-      title: "Airport Rides",
-      description: "Need a ride to/from the airport? Reliable transportation at student-friendly rates.",
-      price: 40.00,
-      image_url: "https://images.unsplash.com/photo-1464219789935-c2d9d9eb75c5?q=80&w=800",
-      provider_id: "user1",
-      created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 1).toISOString(),
-      is_active: true
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState<"recent" | "price_asc" | "price_desc">("recent");
+  const [editingService, setEditingService] = useState<Service | null>(null);
+
+  const { services, isLoading, createService, updateService, deleteService } = useServices();
+
+  const handleCreateService = (data: Omit<Service, "id" | "created_at" | "provider_id" | "is_active">) => {
+    createService.mutate(data);
+  };
+
+  const handleUpdateService = (data: Omit<Service, "id" | "created_at" | "provider_id" | "is_active">) => {
+    if (editingService) {
+      updateService.mutate({ id: editingService.id, ...data });
+      setEditingService(null);
     }
-  ];
+  };
+
+  const handleDeleteService = (id: string) => {
+    if (window.confirm("Are you sure you want to delete this service?")) {
+      deleteService.mutate(id);
+    }
+  };
+
+  const filteredServices = services
+    .filter(service => 
+      service.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      service.description.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) => {
+      switch (sortBy) {
+        case "price_asc":
+          return a.price - b.price;
+        case "price_desc":
+          return b.price - a.price;
+        default:
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      }
+    });
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -55,17 +55,22 @@ const Services: React.FC = () => {
         <h1 className="text-3xl font-bold">Services</h1>
         <div className="flex gap-4">
           <div className="relative flex-1 md:min-w-[300px]">
-            <input
+            <Input
               type="text"
               placeholder="Search services..."
-              className="w-full pl-10 pr-4 py-2 border rounded-full"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 pr-4 py-2"
             />
             <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
           </div>
-          <button className="bg-tigerGold text-tigerBlack px-4 py-2 rounded-full flex items-center gap-2 font-medium">
-            <Plus size={18} />
-            <span>Add Service</span>
-          </button>
+          <Button
+            onClick={() => setIsFormOpen(true)}
+            className="bg-tigerGold text-tigerBlack hover:bg-tigerGold/90"
+          >
+            <Plus size={18} className="mr-2" />
+            Add Service
+          </Button>
         </div>
       </header>
 
@@ -75,24 +80,58 @@ const Services: React.FC = () => {
             <div className="flex items-center">
               <span className="text-sm font-medium mr-2">Filter:</span>
             </div>
-            <button className="px-3 py-1 text-sm bg-gray-100 rounded-full hover:bg-gray-200">
+            <Button
+              variant={sortBy === "recent" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSortBy("recent")}
+            >
               Recent
-            </button>
-            <button className="px-3 py-1 text-sm bg-gray-100 rounded-full hover:bg-gray-200">
+            </Button>
+            <Button
+              variant={sortBy === "price_asc" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSortBy("price_asc")}
+            >
               Price: Low to High
-            </button>
-            <button className="px-3 py-1 text-sm bg-gray-100 rounded-full hover:bg-gray-200">
+            </Button>
+            <Button
+              variant={sortBy === "price_desc" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSortBy("price_desc")}
+            >
               Price: High to Low
-            </button>
+            </Button>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {services.map((service) => (
-          <ServiceCard key={service.id} service={service} />
-        ))}
-      </div>
+      {isLoading ? (
+        <div className="text-center">Loading...</div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {filteredServices.map((service) => (
+            <ServiceCard
+              key={service.id}
+              service={service}
+              onEdit={() => {
+                setEditingService(service);
+                setIsFormOpen(true);
+              }}
+              onDelete={() => handleDeleteService(service.id)}
+            />
+          ))}
+        </div>
+      )}
+
+      <ServiceForm
+        isOpen={isFormOpen}
+        onClose={() => {
+          setIsFormOpen(false);
+          setEditingService(null);
+        }}
+        service={editingService || undefined}
+        onSubmit={editingService ? handleUpdateService : handleCreateService}
+      />
     </div>
   );
 };

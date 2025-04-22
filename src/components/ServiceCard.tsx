@@ -1,15 +1,29 @@
 
 import React from "react";
 import { Link } from "react-router-dom";
-import { Service } from "@/types";
 import { formatDistanceToNow } from "date-fns";
-import { MessageSquare } from "lucide-react";
+import { MessageSquare, Edit, Trash2 } from "lucide-react";
+import { Service, User } from "@/types";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 
 interface ServiceCardProps {
-  service: Service;
+  service: Service & { provider: User };
+  onEdit?: () => void;
+  onDelete?: () => void;
 }
 
-const ServiceCard: React.FC<ServiceCardProps> = ({ service }) => {
+const ServiceCard: React.FC<ServiceCardProps> = ({ service, onEdit, onDelete }) => {
+  const { user } = useAuth();
+  const isOwner = user?.id === service.provider_id;
+
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden transition-all hover:shadow-lg">
       <div className="h-48 overflow-hidden">
@@ -29,16 +43,34 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service }) => {
           <div className="text-xs text-gray-500">
             {formatDistanceToNow(new Date(service.created_at), { addSuffix: true })}
           </div>
-          <div className="flex gap-2">
-            <button className="p-2 text-gray-600 hover:text-primary">
-              <MessageSquare size={16} />
-            </button>
-            <Link 
-              to={`/services/${service.id}`}
-              className="bg-primary/90 text-black text-xs px-3 py-1 rounded-full hover:bg-primary"
-            >
-              View
-            </Link>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" asChild>
+              <Link to={`/messages?to=${service.provider_id}`}>
+                <MessageSquare size={16} />
+              </Link>
+            </Button>
+            
+            {isOwner && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <Edit size={16} />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={onEdit}>
+                    Edit
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    className="text-red-600"
+                    onClick={onDelete}
+                  >
+                    Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
         </div>
       </div>
