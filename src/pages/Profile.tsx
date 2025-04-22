@@ -1,4 +1,3 @@
-
 import React from "react";
 import { formatDistanceToNow } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -10,6 +9,7 @@ import ServiceCard from "@/components/ServiceCard";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { Link } from "react-router-dom";
 import ProfileImageUpload from "@/components/ProfileImageUpload";
+import { User } from "@/types";
 
 const Profile: React.FC = () => {
   const { user, products, services, orders, isLoading } = useUserProfile();
@@ -22,11 +22,24 @@ const Profile: React.FC = () => {
     return <div className="max-w-5xl mx-auto p-6">Not authenticated</div>;
   }
 
-  // Get user display information from either auth user object or database user object
-  const displayName = user.user_metadata?.full_name || user.email?.split('@')[0] || "Tiger Student";
-  const avatarUrl = user.profile_image || user.user_metadata?.avatar_url || null;
-  const joinedDate = user.created_at;
-  const isAdmin = user.user_metadata?.is_admin === true || user.app_metadata?.is_admin === true;
+  // Enhanced type-safe extraction of user details
+  const displayName = 
+    (user as User).full_name || 
+    user.user_metadata?.full_name || 
+    (user.email?.split('@')[0] || "Tiger Student");
+  
+  const avatarUrl = 
+    (user as User).profile_image || 
+    user.user_metadata?.profile_image || 
+    user.user_metadata?.avatar_url || 
+    null;
+  
+  const joinedDate = (user as User).joined_at || user.created_at;
+  
+  const isAdmin = 
+    (user as User).is_admin || 
+    user.user_metadata?.is_admin === true || 
+    user.app_metadata?.is_admin === true;
 
   const getStatusColor = (status: string) => {
     switch (status) {
