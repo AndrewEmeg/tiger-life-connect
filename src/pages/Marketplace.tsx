@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from "react";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import ProductCard from "@/components/ProductCard";
@@ -9,6 +8,13 @@ import { useProducts } from "@/hooks/useProducts";
 import { Product } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
+import { useIsMobile } from "@/hooks/use-mobile";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 
 const Marketplace: React.FC = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -16,46 +22,32 @@ const Marketplace: React.FC = () => {
   const [sortBy, setSortBy] = useState<"recent" | "price_asc" | "price_desc">("recent");
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [validatingProducts, setValidatingProducts] = useState(false);
+  const isMobile = useIsMobile();
 
   const { products, isLoading, createProduct, updateProduct, deleteProduct } = useProducts();
 
-  // Check for products with invalid sellers
   useEffect(() => {
     const validateSellers = async () => {
       if (!products.length) return;
-      
       setValidatingProducts(true);
-      
       try {
-        // Get all unique seller IDs
         const sellerIds = [...new Set(products.map(product => product.seller_id))];
-        
-        // Check which seller IDs exist in the database
         const { data, error } = await supabase
           .from("users")
           .select("id")
           .in("id", sellerIds);
-          
         if (error) {
           console.error("Error validating sellers:", error);
           return;
         }
-        
-        // Get IDs of valid sellers
         const validSellerIds = new Set((data || []).map(seller => seller.id));
-        
-        // Find products with invalid seller IDs
         const invalidProducts = products.filter(
           product => !validSellerIds.has(product.seller_id)
         );
-        
         if (invalidProducts.length > 0) {
           console.warn("Found products with invalid seller IDs:", 
             invalidProducts.map(p => ({ id: p.id, seller_id: p.seller_id, title: p.title }))
           );
-          
-          // Optionally show a warning to admins using toast
-          // toast.warning(`Found ${invalidProducts.length} products with invalid seller references`);
         }
       } catch (error) {
         console.error("Error in seller validation:", error);
@@ -63,7 +55,6 @@ const Marketplace: React.FC = () => {
         setValidatingProducts(false);
       }
     };
-    
     validateSellers();
   }, [products]);
 
@@ -127,32 +118,63 @@ const Marketplace: React.FC = () => {
 
       <div className="mb-8">
         <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
-          <div className="flex flex-wrap gap-2">
-            <div className="flex items-center">
-              <span className="text-sm font-medium mr-2">Filter:</span>
+          {isMobile ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2">
+                  <SlidersHorizontal size={18} />
+                  Filter
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-44">
+                <DropdownMenuItem
+                  onClick={() => setSortBy("recent")}
+                  className={sortBy === "recent" ? "font-semibold text-tigerGold" : ""}
+                >
+                  Recent
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => setSortBy("price_asc")}
+                  className={sortBy === "price_asc" ? "font-semibold text-tigerGold" : ""}
+                >
+                  Price: Low to High
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => setSortBy("price_desc")}
+                  className={sortBy === "price_desc" ? "font-semibold text-tigerGold" : ""}
+                >
+                  Price: High to Low
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              <div className="flex items-center">
+                <span className="text-sm font-medium mr-2">Filter:</span>
+              </div>
+              <Button
+                variant={sortBy === "recent" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSortBy("recent")}
+              >
+                Recent
+              </Button>
+              <Button
+                variant={sortBy === "price_asc" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSortBy("price_asc")}
+              >
+                Price: Low to High
+              </Button>
+              <Button
+                variant={sortBy === "price_desc" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSortBy("price_desc")}
+              >
+                Price: High to Low
+              </Button>
             </div>
-            <Button
-              variant={sortBy === "recent" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setSortBy("recent")}
-            >
-              Recent
-            </Button>
-            <Button
-              variant={sortBy === "price_asc" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setSortBy("price_asc")}
-            >
-              Price: Low to High
-            </Button>
-            <Button
-              variant={sortBy === "price_desc" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setSortBy("price_desc")}
-            >
-              Price: High to Low
-            </Button>
-          </div>
+          )}
         </div>
       </div>
 
