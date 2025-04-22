@@ -4,9 +4,11 @@ import { formatDistanceToNow } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import ProductCard from "@/components/ProductCard";
 import ServiceCard from "@/components/ServiceCard";
 import { useUserProfile } from "@/hooks/useUserProfile";
+import { Link } from "react-router-dom";
 
 const Profile: React.FC = () => {
   const { user, products, services, orders, isLoading } = useUserProfile();
@@ -23,6 +25,17 @@ const Profile: React.FC = () => {
   const displayName = user.user_metadata?.full_name || user.full_name || "Tiger Student";
   const avatarUrl = user.user_metadata?.avatar_url || user.profile_image;
   const joinedDate = user.created_at || user.joined_at;
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return 'bg-green-100 text-green-800';
+      case 'cancelled':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-yellow-100 text-yellow-800';
+    }
+  };
 
   return (
     <div className="max-w-5xl mx-auto p-6 space-y-8">
@@ -105,18 +118,49 @@ const Profile: React.FC = () => {
           {orders && orders.length > 0 ? (
             <div className="space-y-4">
               {orders.map((order) => (
-                <Card key={order.id}>
-                  <CardHeader>
-                    <CardTitle className="text-lg">
-                      {order.item?.title}
-                    </CardTitle>
-                    <p className="text-sm text-muted-foreground">
-                      {order.item_type.charAt(0).toUpperCase() + order.item_type.slice(1)} - ${order.price}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Status: {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                    </p>
-                  </CardHeader>
+                <Card key={order.id} className="overflow-hidden">
+                  <CardContent className="p-0">
+                    <div className="flex flex-col md:flex-row">
+                      {order.item?.image_url && (
+                        <div className="w-full md:w-48 h-36 overflow-hidden">
+                          <img
+                            src={order.item.image_url || "/placeholder.svg"}
+                            alt={order.item.title}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      )}
+                      <div className="p-4 flex-1">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between mb-2">
+                          <h3 className="text-lg font-medium">{order.item?.title}</h3>
+                          <div className="flex items-center space-x-2 mt-1 md:mt-0">
+                            <span className="font-medium">${order.price.toFixed(2)}</span>
+                            <Badge className={getStatusColor(order.status)}>
+                              {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                            </Badge>
+                          </div>
+                        </div>
+                        <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                          {order.item?.description}
+                        </p>
+                        <div className="flex justify-between items-end">
+                          <div>
+                            <p className="text-xs text-muted-foreground">
+                              Order #{order.id.substring(0, 8)}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {formatDistanceToNow(new Date(order.created_at), { addSuffix: true })}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-xs font-medium">
+                              {order.buyer_id === user.id ? 'You purchased' : 'You sold'} this {order.item_type}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
                 </Card>
               ))}
             </div>

@@ -42,6 +42,39 @@ export type Database = {
         }
         Relationships: []
       }
+      orders: {
+        Row: {
+          buyer_id: string | null
+          created_at: string
+          id: string
+          item_id: string
+          item_type: string | null
+          price: number
+          seller_id: string | null
+          status: string | null
+        }
+        Insert: {
+          buyer_id?: string | null
+          created_at?: string
+          id?: string
+          item_id: string
+          item_type?: string | null
+          price: number
+          seller_id?: string | null
+          status?: string | null
+        }
+        Update: {
+          buyer_id?: string | null
+          created_at?: string
+          id?: string
+          item_id?: string
+          item_type?: string | null
+          price?: number
+          seller_id?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           created_at: string

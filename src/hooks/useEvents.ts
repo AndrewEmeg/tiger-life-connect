@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,7 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 export function useEvents() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const isAdmin = user?.is_admin ?? false;
+  const isAdmin = user?.is_admin === true;
 
   // Fetch events based on user role
   const { data: events = [], isLoading } = useQuery({

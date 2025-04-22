@@ -37,10 +37,45 @@ export function useUserProfile() {
     enabled: !!user?.id,
   });
 
-  // For now, we'll return an empty array for orders since there's no orders table
-  // This can be implemented later when an orders table is created
-  const orders: Order[] = [];
-  const isLoadingOrders = false;
+  const { data: orders = [], isLoading: isLoadingOrders } = useQuery({
+    queryKey: ["userOrders", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      // Get orders where the user is either buyer or seller
+      const { data, error } = await supabase
+        .from("orders")
+        .select(`*`)
+        .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      
+      // For each order, get the associated product or service
+      const ordersWithDetails = await Promise.all(data.map(async (order) => {
+        if (order.item_type === "product") {
+          const { data: productData } = await supabase
+            .from("products")
+            .select("title,description,image_url")
+            .eq("id", order.item_id)
+            .single();
+            
+          return { ...order, item: productData };
+        } else {
+          const { data: serviceData } = await supabase
+            .from("services")
+            .select("title,description,image_url")
+            .eq("id", order.item_id)
+            .single();
+            
+          return { ...order, item: serviceData };
+        }
+      }));
+      
+      return ordersWithDetails as Order[];
+    },
+    enabled: !!user?.id,
+  });
 
   return {
     user,

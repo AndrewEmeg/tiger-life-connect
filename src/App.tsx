@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,10 +9,13 @@ import { AuthGuard } from "@/components/AuthGuard";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Marketplace from "./pages/Marketplace";
+import ProductDetail from "./pages/ProductDetail";
 import Services from "./pages/Services";
+import ServiceDetail from "./pages/ServiceDetail";
 import Events from "./pages/Events";
 import Profile from "./pages/Profile";
 import Messages from "./pages/Messages";
+import CheckoutSuccess from "./pages/CheckoutSuccess";
 import Auth from "./pages/Auth";
 import Layout from "./components/Layout";
 import AdminEvents from "./pages/AdminEvents";
@@ -48,11 +52,31 @@ const App = () => (
               }
             />
             <Route
+              path="/product/:id"
+              element={
+                <AuthGuard>
+                  <Layout>
+                    <ProductDetail />
+                  </Layout>
+                </AuthGuard>
+              }
+            />
+            <Route
               path="/services"
               element={
                 <AuthGuard>
                   <Layout>
                     <Services />
+                  </Layout>
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/service/:id"
+              element={
+                <AuthGuard>
+                  <Layout>
+                    <ServiceDetail />
                   </Layout>
                 </AuthGuard>
               }
@@ -83,6 +107,16 @@ const App = () => (
                 <AuthGuard>
                   <Layout>
                     <Messages />
+                  </Layout>
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/checkout-success"
+              element={
+                <AuthGuard>
+                  <Layout>
+                    <CheckoutSuccess />
                   </Layout>
                 </AuthGuard>
               }

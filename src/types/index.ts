@@ -1,3 +1,4 @@
+
 export interface User {
   id: string;
   full_name: string;
@@ -67,9 +68,14 @@ export interface Order {
   price: number;
   status: 'processing' | 'completed' | 'cancelled';
   created_at: string;
+  stripe_session_id?: string;
   buyer?: User;
   seller?: User;
-  item?: Product | Service;
+  item?: {
+    title: string;
+    description: string;
+    image_url?: string;
+  };
 }
 
 export interface Organization {
