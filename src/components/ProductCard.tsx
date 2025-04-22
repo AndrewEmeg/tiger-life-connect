@@ -1,8 +1,13 @@
-
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
-import { MessageSquare, Edit, Trash2, AlertCircle, ShoppingCart } from "lucide-react";
+import {
+    MessageSquare,
+    Edit,
+    Trash2,
+    AlertCircle,
+    ShoppingCart,
+} from "lucide-react";
 import { Product, User } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -122,7 +127,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                         <h3 className="font-semibold text-lg truncate">
                             {product.title}
                         </h3>
-                        <span className="text-tigerBlack bg-green-400 p-2 rounded-full font-bold text-sm text-primary">
+                        <span className="text-tigerBlack bg-green-400 p-2 rounded-full font-bold text-xs text-primary">
                             ${product.price.toFixed(2)}
                         </span>
                     </div>
@@ -133,7 +138,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
                         <Avatar className="h-5 w-5">
                             <AvatarImage src={product.seller?.profile_image} />
                             <AvatarFallback className="text-xs bg-gray-200">
-                                {product.seller?.full_name?.charAt(0).toUpperCase() || "S"}
+                                {product.seller?.full_name
+                                    ?.charAt(0)
+                                    .toUpperCase() || "S"}
                             </AvatarFallback>
                         </Avatar>
                         <span className="text-xs text-gray-500">
@@ -150,17 +157,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
                         })}
                     </div>
                     <div className="flex items-center gap-2">
-                        {!isOwner && (
-                            <Button
-                                variant="default"
-                                size="sm"
-                                className="bg-tigerGold text-tigerBlack hover:bg-tigerGold/90"
-                                onClick={handleBuyClick}
-                            >
-                                <ShoppingCart size={16} className="mr-1" />
-                                Buy
-                            </Button>
-                        )}
                         <TooltipProvider>
                             <Tooltip>
                                 <TooltipTrigger asChild>
@@ -185,6 +181,17 @@ const ProductCard: React.FC<ProductCardProps> = ({
                                 </TooltipContent>
                             </Tooltip>
                         </TooltipProvider>
+                        {!isOwner && (
+                            <Button
+                                variant="default"
+                                size="sm"
+                                className="bg-tigerGold rounded-full text-tigerBlack hover:bg-tigerGold/90"
+                                onClick={handleBuyClick}
+                            >
+                                <ShoppingCart size={16} className="mr-1" />
+                                Buy
+                            </Button>
+                        )}
 
                         {isOwner && (
                             <DropdownMenu>

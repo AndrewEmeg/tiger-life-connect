@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
@@ -109,7 +108,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
                         <h3 className="font-semibold text-lg truncate">
                             {service.title}
                         </h3>
-                        <span className="text-tigerBlack bg-green-400 p-2 rounded-full font-bold text-sm text-primary">
+                        <span className="text-tigerBlack bg-green-400 p-2 rounded-full font-bold text-xs text-primary">
                             ${service.price.toFixed(2)}
                         </span>
                     </div>
@@ -118,9 +117,13 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
                     </p>
                     <div className="flex items-center gap-2 mt-2">
                         <Avatar className="h-5 w-5">
-                            <AvatarImage src={service.provider?.profile_image} />
+                            <AvatarImage
+                                src={service.provider?.profile_image}
+                            />
                             <AvatarFallback className="text-xs bg-gray-200">
-                                {service.provider?.full_name?.charAt(0).toUpperCase() || "P"}
+                                {service.provider?.full_name
+                                    ?.charAt(0)
+                                    .toUpperCase() || "P"}
                             </AvatarFallback>
                         </Avatar>
                         <span className="text-xs text-gray-500">
@@ -137,17 +140,6 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
                         })}
                     </div>
                     <div className="flex items-center gap-2">
-                        {!isOwner && (
-                            <Button
-                                variant="default"
-                                size="sm"
-                                className="bg-tigerGold text-tigerBlack hover:bg-tigerGold/90"
-                                onClick={handleBuyClick}
-                            >
-                                <ShoppingCart size={16} className="mr-1" />
-                                Buy
-                            </Button>
-                        )}
                         <Button
                             variant="ghost"
                             size="icon"
@@ -182,6 +174,17 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
                                     </DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
+                        )}
+                        {!isOwner && (
+                            <Button
+                                variant="default"
+                                size="sm"
+                                className="bg-tigerGold text-tigerBlack rounded-full hover:bg-tigerGold/90"
+                                onClick={handleBuyClick}
+                            >
+                                <ShoppingCart size={16} className="mr-1" />
+                                Buy
+                            </Button>
                         )}
                     </div>
                 </div>
