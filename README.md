@@ -169,15 +169,6 @@ In `/public/_redirects`:
 
 ---
 
-## 📫 Maintainers
-
-**Andrew Emeghebo**  
-Lead Developer / Product Architect
-
-Feel free to reach out if you're a student, developer, or club member looking to collaborate!
-
----
-
 ## 🏁 Coming Soon
 
 -   Event registration pages
