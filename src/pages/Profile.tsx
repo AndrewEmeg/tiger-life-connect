@@ -1,3 +1,4 @@
+
 import React from "react";
 import { formatDistanceToNow } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -58,10 +59,8 @@ const Profile: React.FC = () => {
     }
   };
 
-  // Filter out orders with status "processing"
-  const filteredOrders = (orders || []).filter(
-    o => o.status !== "processing"
-  );
+  // Show all orders instead of filtering them
+  const allOrders = orders || [];
 
   return (
     <div className="max-w-5xl mx-auto p-3 sm:p-6 space-y-8">
@@ -114,7 +113,7 @@ const Profile: React.FC = () => {
             Services ({services?.length || 0})
           </TabsTrigger>
           <TabsTrigger value="orders">
-            Orders ({filteredOrders.length})
+            Orders ({allOrders.length})
           </TabsTrigger>
         </TabsList>
 
@@ -171,9 +170,9 @@ const Profile: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="orders" className="mt-6">
-          {filteredOrders && filteredOrders.length > 0 ? (
+          {allOrders.length > 0 ? (
             <div className="space-y-4">
-              {filteredOrders.map((order) => (
+              {allOrders.map((order) => (
                 <Card key={order.id} className="overflow-hidden">
                   <CardContent className="p-0">
                     <div className="flex flex-col md:flex-row">
@@ -232,7 +231,7 @@ const Profile: React.FC = () => {
             </div>
           ) : (
             <p className="text-muted-foreground">
-              No completed orders yet.
+              No orders yet.
             </p>
           )}
         </TabsContent>
