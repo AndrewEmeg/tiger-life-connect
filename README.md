@@ -1,73 +1,193 @@
-# Welcome to your Lovable project
+# 🐯 Tiger Life - Grambling State University Campus Platform
 
-## Project info
+Tiger Life is a full-stack web application designed specifically for the students of **Grambling State University**. It provides a vibrant and secure platform for buying and selling used items, offering and requesting student services, sharing events, and connecting with peers through real-time messaging.
 
-**URL**: https://lovable.dev/projects/348e8ff2-8915-419a-88c7-fdb75c9fad30
+---
 
-## How can I edit this code?
+## 🚀 Live Site
 
-There are several ways of editing your application.
+**[https://tigerlife.netlify.app](https://tigerlife.netlify.app)**
 
-**Use Lovable**
+---
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/348e8ff2-8915-419a-88c7-fdb75c9fad30) and start prompting.
+## 🧑🏽‍💻 Tech Stack
 
-Changes made via Lovable will be committed automatically to this repo.
+### Frontend
 
-**Use your preferred IDE**
+-   **React** with **TypeScript**
+-   **Tailwind CSS** for utility-first styling
+-   **React Router** for client-side routing
+-   **React Query** for data fetching and caching
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Backend
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+-   **Supabase** for authentication, database, and storage
+-   **Stripe** for payments
+-   **Deno** Edge Functions (via Supabase CLI) for serverless backend logic
 
-Follow these steps:
+---
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+## 📦 Features Overview
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### 🏠 Homepage
 
-# Step 3: Install the necessary dependencies.
-npm i
+-   Simple layout with large navigation cards
+-   Sections for **Marketplace**, **Services**, and **Events**
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+### 🛍️ Marketplace
+
+-   Post, browse, and search products
+-   Filter by date, price, or name
+-   View item details and message sellers
+-   Secure payment via Stripe
+
+### 🧰 Services
+
+-   Offer services like tutoring, graphic design, haircutting, and more
+-   Students can request services and chat with providers
+
+### 🎟️ Events
+
+-   Placeholder page for now
+-   Future feature: allow clubs and organizations to post event registrations
+
+### 📬 Messaging
+
+-   Real-time 1:1 messaging between buyers and sellers/service providers
+-   Stored in Supabase for persistence
+
+### 👤 Profile
+
+-   Displays user info, joined date, profile image
+-   Order history and list of posted items/services
+
+---
+
+## 💰 Stripe Integration
+
+-   Stripe Checkout is used to handle all purchases securely
+-   After successful payment, users are redirected to `/checkout-success?session_id=...`
+-   The app verifies the session and updates the order status to `completed`
+
+> **Note:** In development, the default fallback origin is `http://localhost:8082`. In production, it's controlled via the `SITE_URL` environment variable.
+
+---
+
+## 🧱 Database Schema (Supabase)
+
+### `users`
+
+-   id (uuid)
+-   full_name (text)
+-   email (text)
+-   profile_image (text)
+-   joined_at (timestamp)
+-   is_admin (boolean)
+
+### `products`
+
+-   id, title, description, price, image_url, seller_id, created_at, is_active
+
+### `services`
+
+-   id, title, description, price, image_url, provider_id, created_at, is_active
+
+### `orders`
+
+-   id, buyer_id, item_id, item_type, seller_id, price, stripe_session_id, status, created_at
+
+### `messages`
+
+-   id, sender_id, receiver_id, content, sent_at
+
+### `events`
+
+-   id, title, description, event_datetime, location, organizer_id, is_approved, created_at
+
+---
+
+## ⚙️ Local Development Setup
+
+### Prerequisites
+
+-   Node.js + npm
+-   Supabase CLI
+-   Stripe account
+
+### Steps
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/your-username/tiger-life.git
+
+# 2. Install dependencies
+npm install
+
+# 3. Start the dev server
 npm run dev
+
+# 4. Start Supabase functions (in a separate terminal)
+supabase start
+supabase functions serve create-checkout
 ```
 
-**Edit a file directly in GitHub**
+---
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## 🌐 Deployment (Netlify + Supabase)
 
-**Use GitHub Codespaces**
+### Netlify Environment Variables
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+Set the following in the Netlify dashboard:
 
-## What technologies are used for this project?
+```
+VITE_SUPABASE_URL=<your_supabase_url>
+VITE_SUPABASE_ANON_KEY=<your_supabase_anon_key>
+```
 
-This project is built with:
+### Supabase Secrets (Production)
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+```bash
+supabase secrets set SITE_URL=https://tigerlife.netlify.app
+supabase secrets set STRIPE_SECRET_KEY=<your_stripe_secret_key>
+```
 
-## How can I deploy this project?
+### Netlify Redirects for SPA Routing
 
-Simply open [Lovable](https://lovable.dev/projects/348e8ff2-8915-419a-88c7-fdb75c9fad30) and click on Share -> Publish.
+In `/public/_redirects`:
 
-## Can I connect a custom domain to my Lovable project?
+```
+/*    /index.html   200
+```
 
-Yes, you can!
+---
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## 📌 Developer Notes
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+-   AuthGuard is used to protect private routes
+-   Stripe session ID is injected by Stripe and verified in the `/checkout-success` page
+-   Supabase Row Level Security (RLS) policies are configured for user data access
+
+---
+
+## 📫 Maintainers
+
+**Andrew Emeghebo**  
+Lead Developer / Product Architect
+
+Feel free to reach out if you're a student, developer, or club member looking to collaborate!
+
+---
+
+## 🏁 Coming Soon
+
+-   Event registration pages
+-   Admin dashboard
+-   Ratings and reviews for products/services
+-   Notifications panel
+-   Mobile responsiveness polishing
+
+---
+
+## 🐅 Built for Grambling State University
+
+_"Where everybody is somebody"_
