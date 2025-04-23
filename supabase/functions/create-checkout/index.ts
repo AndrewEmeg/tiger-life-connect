@@ -107,7 +107,7 @@ serve(async (req) => {
                 },
             ],
             mode: "payment",
-            success_url: `${origin}/checkout-success?session_id=%7BCHECKOUT_SESSION_ID%7D`,
+            success_url: `${origin}/checkout-success?session_id={CHECKOUT_SESSION_ID}`,
 
             cancel_url: `${origin}/${
                 itemType === "product" ? "marketplace" : "services"
