@@ -1,4 +1,3 @@
-
 import React from "react";
 import { formatDistanceToNow } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -11,7 +10,6 @@ import { useUserProfile } from "@/hooks/useUserProfile";
 import { Link } from "react-router-dom";
 import ProfileImageUpload from "@/components/ProfileImageUpload";
 import { User } from "@/types";
-import { User as SupabaseUser } from "@supabase/supabase-js";
 
 const Profile: React.FC = () => {
   const { user, products, services, orders, isLoading } = useUserProfile();
@@ -29,24 +27,23 @@ const Profile: React.FC = () => {
   const getAppMetadata = (u: any) => (u?.app_metadata ? u.app_metadata : {});
 
   const displayName =
-    (user as User)?.full_name ||
+    user?.full_name ||
     getMetadata(user)?.full_name ||
     (user.email?.split("@")[0] || "Tiger Student");
 
   const avatarUrl =
-    (user as User)?.profile_image ||
+    user?.profile_image ||
     getMetadata(user)?.profile_image ||
     getMetadata(user)?.avatar_url ||
     null;
 
   const joinedDate =
-    (user as User)?.joined_at ||
-    (user as User)?.created_at ||
-    (user as SupabaseUser)?.created_at ||
+    user?.joined_at ||
+    user?.created_at ||
     new Date().toISOString();
 
   const isAdmin =
-    (user as User)?.is_admin ||
+    user?.is_admin ||
     getMetadata(user)?.is_admin === true ||
     getAppMetadata(user)?.is_admin === true;
 
@@ -134,7 +131,7 @@ const Profile: React.FC = () => {
                       email: user.email || "",
                       full_name: displayName,
                       joined_at: joinedDate || new Date().toISOString(),
-                      is_admin: isAdmin,
+                      is_admin: !!isAdmin,
                     },
                   }}
                 />
@@ -160,7 +157,7 @@ const Profile: React.FC = () => {
                       email: user.email || "",
                       full_name: displayName,
                       joined_at: joinedDate || new Date().toISOString(),
-                      is_admin: isAdmin,
+                      is_admin: !!isAdmin,
                     },
                   }}
                 />

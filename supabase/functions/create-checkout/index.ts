@@ -128,7 +128,7 @@ serve(async (req) => {
                 item_type: itemType,
                 item_id: itemId,
                 price: price,
-                status: "processing",
+                status: "processing", // Explicitly string-literal 
                 stripe_session_id: session.id,
             });
 

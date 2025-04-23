@@ -38,8 +38,10 @@ const CheckoutSuccess: React.FC = () => {
         // If order already exists, just display it
         if (existingOrders && existingOrders.length > 0) {
           const existingOrder = existingOrders[0];
+          // Cast status to expected type since we know what values are stored in database
           setOrderDetails({
             ...existingOrder,
+            status: existingOrder.status as "processing" | "completed" | "cancelled",
             item_type: existingOrder.item_type as "product" | "service"
           });
           setIsVerifying(false);
@@ -57,8 +59,10 @@ const CheckoutSuccess: React.FC = () => {
         if (updateError) throw updateError;
 
         if (updatedOrder) {
+          // Cast status to expected type since we know what values are stored in database
           setOrderDetails({
             ...updatedOrder,
+            status: updatedOrder.status as "processing" | "completed" | "cancelled",
             item_type: updatedOrder.item_type as "product" | "service"
           });
           toast.success("Your order has been successfully recorded!");

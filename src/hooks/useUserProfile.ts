@@ -3,6 +3,24 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Product, Service, Order } from "@/types";
+import { User as SupabaseUser } from "@supabase/supabase-js";
+
+// Define a combined user type to handle both our custom User and Supabase User
+type CombinedUser = {
+  id: string;
+  email?: string;
+  full_name?: string;
+  joined_at?: string;
+  created_at?: string;
+  is_admin?: boolean;
+  user_metadata?: {
+    avatar_url?: string;
+    full_name?: string;
+    profile_image?: string;
+  };
+  app_metadata?: any;
+  [key: string]: any;
+};
 
 export function useUserProfile() {
   const { user } = useAuth();
@@ -100,6 +118,7 @@ export function useUserProfile() {
           return { 
             ...order, 
             item_type: safeItemType,
+            status: order.status as "processing" | "completed" | "cancelled",
             item: productData 
           };
         } else {
@@ -112,6 +131,7 @@ export function useUserProfile() {
           return { 
             ...order, 
             item_type: safeItemType,
+            status: order.status as "processing" | "completed" | "cancelled",
             item: serviceData 
           };
         }
@@ -123,7 +143,7 @@ export function useUserProfile() {
   });
 
   return {
-    user: userProfile || user,
+    user: userProfile as CombinedUser,
     products,
     services,
     orders,
