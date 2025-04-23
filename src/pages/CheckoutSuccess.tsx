@@ -37,7 +37,11 @@ const CheckoutSuccess: React.FC = () => {
 
         // If order already exists, just display it
         if (existingOrders && existingOrders.length > 0) {
-          setOrderDetails(existingOrders[0]);
+          const existingOrder = existingOrders[0];
+          setOrderDetails({
+            ...existingOrder,
+            item_type: existingOrder.item_type as "product" | "service"
+          });
           setIsVerifying(false);
           return;
         }
@@ -53,7 +57,10 @@ const CheckoutSuccess: React.FC = () => {
         if (updateError) throw updateError;
 
         if (updatedOrder) {
-          setOrderDetails(updatedOrder);
+          setOrderDetails({
+            ...updatedOrder,
+            item_type: updatedOrder.item_type as "product" | "service"
+          });
           toast.success("Your order has been successfully recorded!");
         } else {
           toast.error("Could not find your order details.");

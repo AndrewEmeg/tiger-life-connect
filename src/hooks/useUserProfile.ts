@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -84,14 +85,23 @@ export function useUserProfile() {
       
       // For each order, get the associated product or service
       const ordersWithDetails = await Promise.all(data.map(async (order) => {
-        if (order.item_type === "product") {
+        // Ensure item_type is either "product" or "service"
+        const safeItemType = order.item_type === "product" || order.item_type === "service" 
+          ? order.item_type
+          : "product"; // Default to product if somehow invalid
+        
+        if (safeItemType === "product") {
           const { data: productData } = await supabase
             .from("products")
             .select("title,description,image_url")
             .eq("id", order.item_id)
             .single();
             
-          return { ...order, item: productData };
+          return { 
+            ...order, 
+            item_type: safeItemType,
+            item: productData 
+          };
         } else {
           const { data: serviceData } = await supabase
             .from("services")
@@ -99,7 +109,11 @@ export function useUserProfile() {
             .eq("id", order.item_id)
             .single();
             
-          return { ...order, item: serviceData };
+          return { 
+            ...order, 
+            item_type: safeItemType,
+            item: serviceData 
+          };
         }
       }));
       
