@@ -181,10 +181,7 @@ Feel free to reach out if you're a student, developer, or club member looking to
 ## 🏁 Coming Soon
 
 -   Event registration pages
--   Admin dashboard
 -   Ratings and reviews for products/services
--   Notifications panel
--   Mobile responsiveness polishing
 
 ---
 
