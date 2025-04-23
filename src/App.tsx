@@ -20,6 +20,7 @@ import Layout from "./components/Layout";
 import AdminEvents from "./pages/AdminEvents";
 import { useEffect } from "react";
 import { initializeProfileStorage } from "./utils/initializeStorage";
+import EventDetails from "./pages/EventDetails";
 
 const queryClient = new QueryClient();
 
