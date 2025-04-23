@@ -21,53 +21,79 @@ const CheckoutSuccess: React.FC = () => {
 
   useEffect(() => {
     async function verifyAndRecordOrder() {
-      if (!sessionId || !user) {
+      if (!sessionId) {
         setIsVerifying(false);
+        toast.error("No session ID found in the URL");
         return;
       }
 
       try {
-        // Check if this order was already recorded
+        console.log("Verifying order with session ID:", sessionId);
+        
+        // Check if this order was already recorded and completed
         const { data: existingOrders, error: checkError } = await supabase
           .from("orders")
           .select("*")
           .eq("stripe_session_id", sessionId);
 
-        if (checkError) throw checkError;
+        if (checkError) {
+          console.error("Error checking for existing order:", checkError);
+          throw checkError;
+        }
 
-        // If order already exists, just display it
-        if (existingOrders && existingOrders.length > 0) {
-          const existingOrder = existingOrders[0];
-          // Cast status to expected type since we know what values are stored in database
+        console.log("Existing orders found:", existingOrders?.length || 0);
+
+        // If order exists and is already completed, just display it
+        const completedOrder = existingOrders?.find(order => order.status === "completed");
+        if (completedOrder) {
+          console.log("Found completed order:", completedOrder);
           setOrderDetails({
-            ...existingOrder,
-            status: existingOrder.status as "processing" | "completed" | "cancelled",
-            item_type: existingOrder.item_type as "product" | "service"
+            ...completedOrder,
+            status: completedOrder.status as "processing" | "completed" | "cancelled",
+            item_type: completedOrder.item_type as "product" | "service"
           });
           setIsVerifying(false);
           return;
         }
 
         // If we're here, we need to update order status from "processing" to "completed"
+        // First get the processing order with this session ID
+        const processingOrder = existingOrders?.find(order => order.status === "processing");
+        
+        if (!processingOrder) {
+          console.error("No processing order found with session ID:", sessionId);
+          toast.error("Could not find your order details");
+          setIsVerifying(false);
+          return;
+        }
+
+        console.log("Updating order status to completed for:", processingOrder.id);
+
+        // Update the order status to "completed"
         const { data: updatedOrder, error: updateError } = await supabase
           .from("orders")
           .update({ status: "completed" })
+          .eq("id", processingOrder.id)
           .eq("stripe_session_id", sessionId)
           .select()
           .single();
 
-        if (updateError) throw updateError;
+        if (updateError) {
+          console.error("Error updating order status:", updateError);
+          throw updateError;
+        }
 
         if (updatedOrder) {
+          console.log("Order successfully updated:", updatedOrder);
           // Cast status to expected type since we know what values are stored in database
           setOrderDetails({
             ...updatedOrder,
             status: updatedOrder.status as "processing" | "completed" | "cancelled",
             item_type: updatedOrder.item_type as "product" | "service"
           });
-          toast.success("Your order has been successfully recorded!");
+          toast.success("Your order has been successfully completed!");
         } else {
-          toast.error("Could not find your order details.");
+          toast.error("Could not update your order status.");
         }
       } catch (error) {
         console.error("Error verifying order:", error);
@@ -112,6 +138,9 @@ const CheckoutSuccess: React.FC = () => {
                 </p>
                 <p className="text-sm mt-1">
                   Amount: <span className="font-medium">${orderDetails.price?.toFixed(2)}</span>
+                </p>
+                <p className="text-sm mt-1">
+                  Status: <span className="font-medium capitalize">{orderDetails.status}</span>
                 </p>
               </>
             )}

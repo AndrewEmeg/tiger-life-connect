@@ -92,6 +92,8 @@ export function useUserProfile() {
     queryFn: async () => {
       if (!user?.id) return [];
       
+      console.log("Fetching orders for user:", user.id);
+      
       // Get orders where the user is either buyer or seller
       const { data, error } = await supabase
         .from("orders")
@@ -99,40 +101,71 @@ export function useUserProfile() {
         .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching orders:", error);
+        throw error;
+      }
+      
+      console.log("Found orders:", data?.length || 0);
       
       // For each order, get the associated product or service
-      const ordersWithDetails = await Promise.all(data.map(async (order) => {
-        // Ensure item_type is either "product" or "service"
-        const safeItemType = order.item_type === "product" || order.item_type === "service" 
-          ? order.item_type
-          : "product"; // Default to product if somehow invalid
-        
-        if (safeItemType === "product") {
-          const { data: productData } = await supabase
-            .from("products")
-            .select("title,description,image_url")
-            .eq("id", order.item_id)
-            .single();
+      const ordersWithDetails = await Promise.all((data || []).map(async (order) => {
+        try {
+          // Ensure item_type is either "product" or "service"
+          const safeItemType = order.item_type === "product" || order.item_type === "service" 
+            ? order.item_type
+            : "product"; // Default to product if somehow invalid
+          
+          // Ensure status is one of the valid types
+          const safeStatus = ['processing', 'completed', 'cancelled'].includes(order.status)
+            ? order.status as "processing" | "completed" | "cancelled"
+            : "processing";
+          
+          console.log(`Fetching ${safeItemType} details for order:`, order.id);
             
+          if (safeItemType === "product") {
+            const { data: productData } = await supabase
+              .from("products")
+              .select("title,description,image_url")
+              .eq("id", order.item_id)
+              .maybeSingle();
+              
+            return { 
+              ...order, 
+              item_type: safeItemType,
+              status: safeStatus,
+              item: productData || { 
+                title: "Product no longer available", 
+                description: "This product has been removed." 
+              }
+            };
+          } else {
+            const { data: serviceData } = await supabase
+              .from("services")
+              .select("title,description,image_url")
+              .eq("id", order.item_id)
+              .maybeSingle();
+              
+            return { 
+              ...order, 
+              item_type: safeItemType,
+              status: safeStatus,
+              item: serviceData || { 
+                title: "Service no longer available", 
+                description: "This service has been removed." 
+              }
+            };
+          }
+        } catch (err) {
+          console.error("Error getting item details for order:", order.id, err);
           return { 
-            ...order, 
-            item_type: safeItemType,
-            status: order.status as "processing" | "completed" | "cancelled",
-            item: productData 
-          };
-        } else {
-          const { data: serviceData } = await supabase
-            .from("services")
-            .select("title,description,image_url")
-            .eq("id", order.item_id)
-            .single();
-            
-          return { 
-            ...order, 
-            item_type: safeItemType,
-            status: order.status as "processing" | "completed" | "cancelled",
-            item: serviceData 
+            ...order,
+            item_type: (order.item_type || "product") as "product" | "service",
+            status: (order.status || "processing") as "processing" | "completed" | "cancelled",
+            item: { 
+              title: "Item not found", 
+              description: "There was an error loading this item."
+            }
           };
         }
       }));
@@ -140,6 +173,8 @@ export function useUserProfile() {
       return ordersWithDetails as Order[];
     },
     enabled: !!user?.id,
+    // Add refetchInterval to periodically check for order updates
+    refetchInterval: 10000, // Refetch every 10 seconds
   });
 
   return {
