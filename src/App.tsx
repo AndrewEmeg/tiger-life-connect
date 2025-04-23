@@ -144,6 +144,16 @@ function App() {
                                     </AuthGuard>
                                 }
                             />
+                            <Route
+                                path="/events/:id"
+                                element={
+                                    <AuthGuard>
+                                        <Layout>
+                                            <EventDetails />
+                                        </Layout>
+                                    </AuthGuard>
+                                }
+                            />
                             <Route path="*" element={<NotFound />} />
                         </Routes>
                     </AuthProvider>

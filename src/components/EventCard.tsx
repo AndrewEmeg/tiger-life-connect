@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
 import { Event } from "@/types";
@@ -19,7 +18,6 @@ const EventCard: React.FC<EventCardProps> = ({
 }) => {
     const eventDate = new Date(event.event_datetime);
 
-    // Improved logging for approval actions
     const handleApprove = (id: string, approve: boolean) => {
         console.log(
             `Admin ${approve ? "approving" : "disapproving"} event:`,
