@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@13.0.0?target=deno";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
@@ -88,8 +87,9 @@ serve(async (req) => {
 
         console.log("User authenticated:", user.id);
 
-        // Fallback for origin header
-        const origin = req.headers.get("origin") ?? "http://localhost:5173";
+        // Get the origin from the request headers or use environment variable
+        const origin = Deno.env.get("SITE_URL") || "http://localhost:8082";
+        console.log("Using origin:", origin);
 
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ["card"],
@@ -107,8 +107,17 @@ serve(async (req) => {
                 },
             ],
             mode: "payment",
-            success_url: `${origin}/checkout-success?session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: `${origin}/${itemType === "product" ? "marketplace" : "services"}`,
+            success_url: `${origin}/checkout-success?session_id=%7BCHECKOUT_SESSION_ID%7D`,
+
+            cancel_url: `${origin}/${
+                itemType === "product" ? "marketplace" : "services"
+            }`,
+            metadata: {
+                itemId,
+                itemType,
+                buyerId: user.id,
+                sellerId,
+            },
         });
 
         console.log("Stripe session created:", session.id);
@@ -128,7 +137,7 @@ serve(async (req) => {
                 item_type: itemType,
                 item_id: itemId,
                 price: price,
-                status: "processing", // Explicitly string-literal 
+                status: "processing", // Explicitly string-literal
                 stripe_session_id: session.id,
             });
 

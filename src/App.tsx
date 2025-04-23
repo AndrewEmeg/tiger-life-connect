@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -19,141 +18,139 @@ import CheckoutSuccess from "./pages/CheckoutSuccess";
 import Auth from "./pages/Auth";
 import Layout from "./components/Layout";
 import AdminEvents from "./pages/AdminEvents";
-import { useEffect } from 'react';
-import { initializeProfileStorage } from './utils/initializeStorage';
+import { useEffect } from "react";
+import { initializeProfileStorage } from "./utils/initializeStorage";
 
 const queryClient = new QueryClient();
 
 function App() {
-  useEffect(() => {
-    // Initialize storage buckets when app loads
-    const init = async () => {
-      try {
-        await initializeProfileStorage();
-      } catch (error) {
-        console.error("Failed to initialize storage:", error);
-      }
-    };
-    
-    init();
-  }, []);
-  
-  return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AuthProvider>
-            <Routes>
-              <Route path="/auth" element={<Auth />} />
-              <Route
-                path="/"
-                element={
-                  <AuthGuard>
-                    <Layout>
-                      <Index />
-                    </Layout>
-                  </AuthGuard>
-                }
-              />
-              <Route
-                path="/marketplace"
-                element={
-                  <AuthGuard>
-                    <Layout>
-                      <Marketplace />
-                    </Layout>
-                  </AuthGuard>
-                }
-              />
-              <Route
-                path="/product/:id"
-                element={
-                  <AuthGuard>
-                    <Layout>
-                      <ProductDetail />
-                    </Layout>
-                  </AuthGuard>
-                }
-              />
-              <Route
-                path="/services"
-                element={
-                  <AuthGuard>
-                    <Layout>
-                      <Services />
-                    </Layout>
-                  </AuthGuard>
-                }
-              />
-              <Route
-                path="/service/:id"
-                element={
-                  <AuthGuard>
-                    <Layout>
-                      <ServiceDetail />
-                    </Layout>
-                  </AuthGuard>
-                }
-              />
-              <Route
-                path="/events"
-                element={
-                  <AuthGuard>
-                    <Layout>
-                      <Events />
-                    </Layout>
-                  </AuthGuard>
-                }
-              />
-              <Route
-                path="/profile"
-                element={
-                  <AuthGuard>
-                    <Layout>
-                      <Profile />
-                    </Layout>
-                  </AuthGuard>
-                }
-              />
-              <Route
-                path="/messages"
-                element={
-                  <AuthGuard>
-                    <Layout>
-                      <Messages />
-                    </Layout>
-                  </AuthGuard>
-                }
-              />
-              <Route
-                path="/checkout-success"
-                element={
-                  <AuthGuard>
-                    <Layout>
-                      <CheckoutSuccess />
-                    </Layout>
-                  </AuthGuard>
-                }
-              />
-              <Route
-                path="/admin/events"
-                element={
-                  <AuthGuard>
-                    <Layout>
-                      <AdminEvents />
-                    </Layout>
-                  </AuthGuard>
-                }
-              />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </AuthProvider>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
-  );
+    useEffect(() => {
+        // Initialize storage buckets when app loads
+        const init = async () => {
+            try {
+                await initializeProfileStorage();
+            } catch (error) {
+                console.error("Failed to initialize storage:", error);
+            }
+        };
+
+        init();
+    }, []);
+
+    return (
+        <QueryClientProvider client={queryClient}>
+            <TooltipProvider>
+                <Toaster />
+                <Sonner />
+                <BrowserRouter>
+                    <AuthProvider>
+                        <Routes>
+                            <Route path="/auth" element={<Auth />} />
+                            <Route
+                                path="/"
+                                element={
+                                    <AuthGuard>
+                                        <Layout>
+                                            <Index />
+                                        </Layout>
+                                    </AuthGuard>
+                                }
+                            />
+                            <Route
+                                path="/marketplace"
+                                element={
+                                    <AuthGuard>
+                                        <Layout>
+                                            <Marketplace />
+                                        </Layout>
+                                    </AuthGuard>
+                                }
+                            />
+                            <Route
+                                path="/product/:id"
+                                element={
+                                    <AuthGuard>
+                                        <Layout>
+                                            <ProductDetail />
+                                        </Layout>
+                                    </AuthGuard>
+                                }
+                            />
+                            <Route
+                                path="/services"
+                                element={
+                                    <AuthGuard>
+                                        <Layout>
+                                            <Services />
+                                        </Layout>
+                                    </AuthGuard>
+                                }
+                            />
+                            <Route
+                                path="/service/:id"
+                                element={
+                                    <AuthGuard>
+                                        <Layout>
+                                            <ServiceDetail />
+                                        </Layout>
+                                    </AuthGuard>
+                                }
+                            />
+                            <Route
+                                path="/events"
+                                element={
+                                    <AuthGuard>
+                                        <Layout>
+                                            <Events />
+                                        </Layout>
+                                    </AuthGuard>
+                                }
+                            />
+                            <Route
+                                path="/profile"
+                                element={
+                                    <AuthGuard>
+                                        <Layout>
+                                            <Profile />
+                                        </Layout>
+                                    </AuthGuard>
+                                }
+                            />
+                            <Route
+                                path="/messages"
+                                element={
+                                    <AuthGuard>
+                                        <Layout>
+                                            <Messages />
+                                        </Layout>
+                                    </AuthGuard>
+                                }
+                            />
+                            <Route
+                                path="/checkout-success"
+                                element={
+                                    <Layout>
+                                        <CheckoutSuccess />
+                                    </Layout>
+                                }
+                            />
+                            <Route
+                                path="/admin/events"
+                                element={
+                                    <AuthGuard>
+                                        <Layout>
+                                            <AdminEvents />
+                                        </Layout>
+                                    </AuthGuard>
+                                }
+                            />
+                            <Route path="*" element={<NotFound />} />
+                        </Routes>
+                    </AuthProvider>
+                </BrowserRouter>
+            </TooltipProvider>
+        </QueryClientProvider>
+    );
 }
 
 export default App;
