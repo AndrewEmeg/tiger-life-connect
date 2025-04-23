@@ -1,29 +1,92 @@
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { Order } from "@/types";
 
 const CheckoutSuccess: React.FC = () => {
   const location = useLocation();
   const { user } = useAuth();
+  const [isVerifying, setIsVerifying] = useState(true);
+  const [orderDetails, setOrderDetails] = useState<Partial<Order> | null>(null);
   
   // Get session_id from URL query params
   const searchParams = new URLSearchParams(location.search);
   const sessionId = searchParams.get("session_id");
+
+  useEffect(() => {
+    async function verifyAndRecordOrder() {
+      if (!sessionId || !user) {
+        setIsVerifying(false);
+        return;
+      }
+
+      try {
+        // Check if this order was already recorded
+        const { data: existingOrders, error: checkError } = await supabase
+          .from("orders")
+          .select("*")
+          .eq("stripe_session_id", sessionId);
+
+        if (checkError) throw checkError;
+
+        // If order already exists, just display it
+        if (existingOrders && existingOrders.length > 0) {
+          setOrderDetails(existingOrders[0]);
+          setIsVerifying(false);
+          return;
+        }
+
+        // If we're here, we need to update order status from "processing" to "completed"
+        const { data: updatedOrder, error: updateError } = await supabase
+          .from("orders")
+          .update({ status: "completed" })
+          .eq("stripe_session_id", sessionId)
+          .select()
+          .single();
+
+        if (updateError) throw updateError;
+
+        if (updatedOrder) {
+          setOrderDetails(updatedOrder);
+          toast.success("Your order has been successfully recorded!");
+        } else {
+          toast.error("Could not find your order details.");
+        }
+      } catch (error) {
+        console.error("Error verifying order:", error);
+        toast.error("Failed to verify your order. Please contact support.");
+      } finally {
+        setIsVerifying(false);
+      }
+    }
+
+    verifyAndRecordOrder();
+  }, [sessionId, user]);
 
   return (
     <div className="flex justify-center items-center min-h-[80vh] p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <CheckCircle className="h-16 w-16 text-green-500" />
+            {isVerifying ? (
+              <Loader2 className="h-16 w-16 text-gray-400 animate-spin" />
+            ) : (
+              <CheckCircle className="h-16 w-16 text-green-500" />
+            )}
           </div>
-          <CardTitle className="text-2xl">Payment Successful!</CardTitle>
+          <CardTitle className="text-2xl">
+            {isVerifying ? "Verifying Payment..." : "Payment Successful!"}
+          </CardTitle>
           <CardDescription>
-            Thank you for your purchase. Your order has been received.
+            {isVerifying 
+              ? "Please wait while we verify your payment."
+              : "Thank you for your purchase. Your order has been received."}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -31,6 +94,16 @@ const CheckoutSuccess: React.FC = () => {
             <p className="text-sm">
               Order Reference: <span className="font-medium">{sessionId?.substring(0, 14) || "N/A"}</span>
             </p>
+            {orderDetails && (
+              <>
+                <p className="text-sm mt-1">
+                  Item Type: <span className="font-medium capitalize">{orderDetails.item_type}</span>
+                </p>
+                <p className="text-sm mt-1">
+                  Amount: <span className="font-medium">${orderDetails.price?.toFixed(2)}</span>
+                </p>
+              </>
+            )}
             <p className="text-sm mt-1">
               The seller has been notified and will be in touch with you soon.
             </p>

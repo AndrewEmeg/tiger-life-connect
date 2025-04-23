@@ -65,6 +65,7 @@ const PurchaseButton = ({
       }
 
       console.log("Checkout successful, redirecting to:", data.url);
+      // Using window.location.href is necessary here because we're redirecting to Stripe
       window.location.href = data.url;
     } catch (error) {
       console.error("Error creating checkout session:", error);

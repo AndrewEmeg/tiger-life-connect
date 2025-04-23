@@ -25,7 +25,6 @@ const Profile: React.FC = () => {
   }
 
   // Enhanced type-safe extraction of user details
-  // Avoid forced type casting!
   const getMetadata = (u: any) => (u?.user_metadata ? u.user_metadata : {});
   const getAppMetadata = (u: any) => (u?.app_metadata ? u.app_metadata : {});
 
@@ -43,7 +42,7 @@ const Profile: React.FC = () => {
   const joinedDate =
     (user as User)?.joined_at ||
     (user as User)?.created_at ||
-    user?.created_at ||
+    (user as SupabaseUser)?.created_at ||
     new Date().toISOString();
 
   const isAdmin =
@@ -73,9 +72,9 @@ const Profile: React.FC = () => {
       <Card>
         <CardHeader
           className="
-            flex flex-col sm:flex-row items-center gap-4
+            flex flex-col sm:flex-row items-center gap-3
             sm:items-center sm:gap-6 
-            p-4 sm:p-6"
+            p-3 sm:p-6"
         >
           {/* Responsive image size */}
           <div className="flex-shrink-0">
@@ -86,10 +85,10 @@ const Profile: React.FC = () => {
               <ProfileImageUpload imageUrl={avatarUrl} size="md" />
             </div>
           </div>
-          <div className="w-full">
+          <div className="w-full text-center sm:text-left">
             <CardTitle
               className="
-                text-lg sm:text-2xl font-bold
+                text-base sm:text-xl font-bold
                 break-all 
               "
             >
@@ -110,7 +109,7 @@ const Profile: React.FC = () => {
 
       {/* User Content Tabs */}
       <Tabs defaultValue="products" className="w-full">
-        <TabsList>
+        <TabsList className="w-full sm:w-auto overflow-x-auto">
           <TabsTrigger value="products">
             Products ({products?.length || 0})
           </TabsTrigger>
@@ -132,7 +131,7 @@ const Profile: React.FC = () => {
                     ...product,
                     seller: {
                       id: user.id,
-                      email: user.email,
+                      email: user.email || "",
                       full_name: displayName,
                       joined_at: joinedDate || new Date().toISOString(),
                       is_admin: isAdmin,
@@ -158,7 +157,7 @@ const Profile: React.FC = () => {
                     ...service,
                     provider: {
                       id: user.id,
-                      email: user.email,
+                      email: user.email || "",
                       full_name: displayName,
                       joined_at: joinedDate || new Date().toISOString(),
                       is_admin: isAdmin,
@@ -193,11 +192,11 @@ const Profile: React.FC = () => {
                       <div className="p-4 flex-1">
                         <div className="flex flex-col md:flex-row md:items-center justify-between mb-2">
                           <h3 className="text-lg font-medium">
-                            {order.item?.title}
+                            {order.item?.title || "Item name unavailable"}
                           </h3>
                           <div className="flex items-center space-x-2 mt-1 md:mt-0">
                             <span className="font-medium">
-                              ${order.price.toFixed(2)}
+                              ${order.price?.toFixed(2)}
                             </span>
                             <Badge className={getStatusColor(order.status)}>
                               {order.status.charAt(0).toUpperCase() +
@@ -206,7 +205,7 @@ const Profile: React.FC = () => {
                           </div>
                         </div>
                         <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-                          {order.item?.description}
+                          {order.item?.description || "No description available"}
                         </p>
                         <div className="flex justify-between items-end">
                           <div>
@@ -236,7 +235,7 @@ const Profile: React.FC = () => {
             </div>
           ) : (
             <p className="text-muted-foreground">
-              No orders placed yet.
+              No completed orders yet.
             </p>
           )}
         </TabsContent>
